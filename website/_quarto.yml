@@ -1,0 +1,34 @@
+project:
+  type: site
+
+site:
+  title: "GenBrain"
+  description: "A collection of Quarto documents"
+  navbar:
+    left:
+      - text: "Roadmap"
+        href: roadmap/roadmapping.qmd
+      - text: "Vision"
+        href: notes/vision.qmd
+      - text: "Theory"
+        href: notes/theory_hour.qmd
+      - text: "SMCNN"
+        href: notes/smcnn_manuscript_notes.qmd
+      - text: "GenAtlas"
+        href: notes/genatlas.qmd        
+
+
+format:
+  html:
+    theme: cyborg
+    css: resources/libs/bootstrap/bootstrap.min.css
+    resources:
+      - resources/libs/clipboard
+      - resources/libs/quarto-html
+
+files:
+  - notes/vision.qmd
+  - notes/genatlas.qmd
+  - notes/theory_hour.qmd
+  - notes/smcnn_manuscript_notes.qmd
+  - roadmap/roadmapping.qmd

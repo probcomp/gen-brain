@@ -1,0 +1,14 @@
+[project]
+authors = ["Andrew Bolton <andrew@chi-fro.org>", "Aaron Steele <aaron@chi-fro.org>"]
+channels = ["conda-forge"]
+description = "Andrew's writing environment"
+name = "chi_brain"
+platforms = ["osx-arm64", "linux-64"]
+version = "0.1.0"
+
+[tasks]
+genbrain-render = { cmd = "quarto render", cwd = "website" }
+genbrain-preview = { cmd = "quarto preview", cwd = "website" }
+
+[dependencies]
+quarto = ">=1.5.57,<2"

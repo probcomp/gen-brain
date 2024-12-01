@@ -1,0 +1,25 @@
+---
+format:
+ # pdf:
+ #   documentclass: scrartcl
+ #   papersize: letter
+  html:
+    theme: cyborg
+---
+
+# Abstract and Introduction
+
+# Figure 1: Marquee with 1D Physics Example
+
+- [ ] Need to replace current 2D example with corresponding 1D, with clear alignment between cognitive task and activity 
+- [ ] Write legend and methods for each figure 
+- [ ] 
+
+# Metropolis Hastings runs matching synaptic data from SMCNN to Allen Atlas
+
+- [ ] Need to decide:
+  - [ ] Number of total particles 
+  - [ ] Number of steps per particle
+  - [ ] How to compress the data (do not want to save full trace of everything)
+  - [ ] Whether to use only runs that have had at least a single accept. 
+  
