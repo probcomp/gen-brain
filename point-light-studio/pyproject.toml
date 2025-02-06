@@ -1,0 +1,25 @@
+[project]
+authors = [{name = "Aaron Steele", email = "aaron@chi-fro.org"},{name = "Andre Bolton", email = "andrew@chi-fro.org"}]
+description = "Point Light Studio is a Python library for visualizing point light illusions."
+name = "point-light-studio"
+requires-python = ">= 3.11"
+version = "0.1.0"
+dependencies = ["genjax>=0.8.2.dev1,<0.9", "jax==0.4.35", "genstudio>=2025.2.1,<2026"]
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["osx-arm64"]
+
+[tool.pixi.pypi-dependencies]
+point_light_studio = { path = ".", editable = true }
+
+[tool.pixi.tasks]
+
+[tool.pixi.dependencies]
+cmake = ">=3.31.5,<4"
+numpy = "<2.0.0"
+ipython = ">=8.32.0,<9"
