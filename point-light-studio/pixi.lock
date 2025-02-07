@@ -88,7 +88,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/a6/83/ce29720ccf934c6cfa9b9c95ebbe96558386e66886626066632b5e44afed/dm_tree-0.1.9.tar.gz
       - pypi: https://files.pythonhosted.org/packages/a3/61/8001b38461d751cd1a0c3a6ae84346796a5758123f3ed97a1b121dfbf4f3/gast-0.6.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/2f/26/633c35708727a1fb553132added3d105ccd3af6ad3106be13d3dcf7533c9/genjax-0.8.2.dev1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/d8/65/29fe765e05abf6fb928809882114b4a67ee53c9a7c211043fd5dc8ed2ac0/genstudio-2025.2.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/e7/94/a699dfaefc400e2b22bc565f9866aa2eb8e1f28ca716df263b4ce121850a/genstudio-2025.2.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/ef/c5/2958b772f07a65dbfb332f8a405b523fc685c9ab088a2b389796d02ad434/html2image-2.0.5-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/76/c6/c88e154df9c4e1a2a66ccf0005a88dfb2650c1dffb6f5ce603dfbd452ce3/idna-3.10-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/22/2d/9c0b76f2f9cc0ebede1b9371b6f317243028ed60b90705863d493bae622e/ipywidgets-8.1.5-py3-none-any.whl
@@ -323,8 +323,6 @@ packages:
   - python >=3.12,<3.13.0a0
   - python >=3.12,<3.13.0a0 *_cpython
   - python_abi 3.12.* *_cp312
-  arch: arm64
-  platform: osx
   license: MIT
   license_family: MIT
   purls:
@@ -409,10 +407,10 @@ packages:
   - tensorflow-probability>=0.23.0,<0.24.0
   - treescope>=0.1.5,<0.2.0
   requires_python: '>=3.10,<3.13'
-- pypi: https://files.pythonhosted.org/packages/d8/65/29fe765e05abf6fb928809882114b4a67ee53c9a7c211043fd5dc8ed2ac0/genstudio-2025.2.1-py3-none-any.whl
+- pypi: https://files.pythonhosted.org/packages/e7/94/a699dfaefc400e2b22bc565f9866aa2eb8e1f28ca716df263b4ce121850a/genstudio-2025.2.2-py3-none-any.whl
   name: genstudio
-  version: 2025.2.1
-  sha256: c6b599f8affd6cbfe698ddecbb7e77497f25777822e507e603b72d0891cead79
+  version: 2025.2.2
+  sha256: 2c3f2c7a8f837c46574013b396a108c719479ac4f871f5c9bdc85b96755125bc
   requires_dist:
   - anywidget>=0.9.10,<0.10.0
   - html2image>=2.0.4.3,<3.0.0.0
@@ -801,8 +799,6 @@ packages:
   md5: a7ce36e284c5faaf93c220dfc39e3abd
   depends:
   - __osx >=11.0
-  arch: arm64
-  platform: osx
   license: ISC
   purls: []
   size: 164972
@@ -1087,11 +1083,14 @@ packages:
 - pypi: .
   name: pls
   version: 0.1.0
-  sha256: b5deeb6fcab494d6b8b6b30e0632ab709068cd7ef5a273a3c9566e9d2b578f9a
+  sha256: f07a65e78e477ef681f7982ca937335201bad4ce890c8044aaa754c31d16db1e
   requires_dist:
-  - genjax>=0.8.2.dev1,<0.9
   - jax==0.4.35
-  - genstudio>=2025.2.1,<2026
+  - pillow>=10.4.0,<11
+  - ipython
+  - ipykernel
+  - genjax>=0.8.2.dev1,<0.9
+  - genstudio>=2025.2.2,<2026
   requires_python: '>=3.11'
   editable: true
 - conda: https://conda.anaconda.org/conda-forge/noarch/prompt-toolkit-3.0.50-pyha770c72_0.conda
@@ -1116,8 +1115,6 @@ packages:
   - python >=3.12,<3.13.0a0
   - python >=3.12,<3.13.0a0 *_cpython
   - python_abi 3.12.* *_cp312
-  arch: arm64
-  platform: osx
   license: BSD-3-Clause
   license_family: BSD
   purls:
@@ -1261,8 +1258,6 @@ packages:
   - python >=3.12,<3.13.0a0 *_cpython
   - python_abi 3.12.* *_cp312
   - zeromq >=4.3.5,<4.4.0a0
-  arch: arm64
-  platform: osx
   license: BSD-3-Clause
   license_family: BSD
   purls:
@@ -1403,8 +1398,6 @@ packages:
   - python >=3.12,<3.13.0a0
   - python >=3.12,<3.13.0a0 *_cpython
   - python_abi 3.12.* *_cp312
-  arch: arm64
-  platform: osx
   license: Apache-2.0
   license_family: Apache
   purls:
@@ -1551,8 +1544,6 @@ packages:
   - krb5 >=1.21.3,<1.22.0a0
   - libcxx >=18
   - libsodium >=1.0.20,<1.0.21.0a0
-  arch: arm64
-  platform: osx
   license: MPL-2.0
   license_family: MOZILLA
   purls: []
