@@ -1,0 +1,55 @@
+ci:
+  skip: [pixi-install-locked]
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-yaml
+        args: [--unsafe]
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.5
+    hooks:
+      - id: ruff
+        types_or: [python, pyi]
+        args: [--fix]
+      - id: ruff-format
+        types_or: [python, pyi]
+
+  - repo: https://github.com/pecigonzalo/pre-commit-shfmt
+    rev: v2.2.0
+    hooks:
+      - id: shell-fmt-go
+        args:
+          - --write
+          - --simplify
+          - --indent
+          - "2"
+
+  - repo: local
+    hooks:
+      - id: pixi-install-locked
+        name: pixi install
+        entry: >
+          bash -c 'cd $(git rev-parse --show-toplevel) &&
+          pixi install'
+        language: system
+        files: ^pyproject\.toml$
+        types: [text]
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.0.0
+    hooks:
+      - id: prettier
+        files: \.yaml$
+        additional_dependencies: ["prettier@3.0.0"]
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        name: yamllint
+        args: ["--format", "github"]
