@@ -1,0 +1,32 @@
+[project]
+authors = [{name = "Aaron Steele", email = "aaron@chi-fro.org"},{name = "Andrew Bolton", email = "andrew@chi-fro.org"}]
+name = "bioreal"
+requires-python = ">= 3.11"
+version = "0.1.0"
+dependencies = ["hatch-cython>=0.5.1,<0.6", "cython", "cmake>=3.31.4,<4", "ninja>=1.11.1.3,<2", "numpy<=2.0.0"]
+#dependencies = ["neuron @ https://github.com/neuronsimulator/nrn.git"]
+
+[tool.uv]
+prerelease = "allow"
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.pixipypi-options]
+no-build-isolation = ["neuron"]
+
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["osx-arm64"]
+
+[tool.pixi.pypi-dependencies]
+bioreal = { path = ".", editable = true }
+
+[tool.pixi.tasks]
+
+[tool.pixi.dependencies]
