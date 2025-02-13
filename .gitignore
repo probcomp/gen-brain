@@ -169,3 +169,7 @@ cython_debug/
 # Ignore Quarto artifacts
 **/.quarto/
 **/_site/
+
+# pixi
+.pixi/*
+*.conda

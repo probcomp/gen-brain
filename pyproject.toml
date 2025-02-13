@@ -1,0 +1,10 @@
+[project]
+dependencies = ["smcnn-core"]
+name = "genbrain"
+requires-python = "<= 3.12"
+#scripts = { smcnn-core-demo-main = "smcnn-core-demo:main" }
+version = "0.1.0"
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
