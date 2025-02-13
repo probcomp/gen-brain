@@ -1,0 +1,27 @@
+[workspace]
+channels = [
+  "https://prefix.dev/pixi-build-backends",
+  "https://prefix.dev/conda-forge",
+]
+platforms = ["win-64", "linux-64", "osx-arm64", "osx-64"]
+preview = ["pixi-build"]
+
+[package]
+name = "hello"
+version = "0.1.0"
+
+[package.build]
+backend = { name = "pixi-build-python", version = "0.1.*" }
+
+[package.host-dependencies]
+hatchling = "==1.26.3"
+
+[package.run-dependencies]
+rich = "13.9.*"
+
+[dependencies]
+smcnn-core = { path = "../../smcnn/core" }
+hello = { path = "." }
+
+[pypi-dependencies]
+genstudio = ">=2025.2.2, <2026"
