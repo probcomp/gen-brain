@@ -3077,7 +3077,7 @@ packages:
   depends:
   - python
   input:
-    hash: 789a634bcc4e211f935e297e59a7da50f1cc5a30fe09f5c6f8538598744ea76b
+    hash: 25909140f52177406f6a7ff791873ae976acfcfb07c01670979f324527e87397
     globs:
     - pixi.toml
 - pypi: https://files.pythonhosted.org/packages/f1/7b/ce1eafaf1a76852e2ec9b22edecf1daa58175c090266e9f6c64afcd81d91/stack_data-0.6.3-py3-none-any.whl

@@ -11,7 +11,6 @@ preview = ["pixi-build"]
 smcnn-core = { path = "packages/smcnn/core" }
 genbrain = { path = "." }
 python = "<=3.12"
-
 # --8<-- [end:workspace]
 
 
@@ -30,3 +29,6 @@ hatchling = "==1.26.3"
 python = "<=3.12"
 
 [package.run-dependencies]
+
+[pypi-dependencies]
+genjax = ">=0.9.2, <0.10"
