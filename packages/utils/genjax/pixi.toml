@@ -8,7 +8,7 @@ preview = ["pixi-build"]
 
 [dependencies]
 smcnn-core = { path = "../../smcnn/core" }
-genjax-utils = { path = "." }
+utils-genjax = { path = "." }
 python = "<=3.12"
 
 [pypi-dependencies]
@@ -23,7 +23,7 @@ tensorflow-probability = ">=0.23.0, <0.24"
 tensorflow = ">=2.18.0, <3"
 
 [package]
-name = "genjax-utils"
+name = "utils-genjax"
 version = "0.1.0"
 
 [package.build]

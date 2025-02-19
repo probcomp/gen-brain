@@ -4,7 +4,7 @@ authors = [
     {name = "Andrew Bolton", email = "andrew@chi-fro.org"}
 ]
 dependencies = ["smcnn-core"]
-name = "genjax-utils"
+name = "utils"
 requires-python = "<= 3.12"
 version = "0.1.0"
 

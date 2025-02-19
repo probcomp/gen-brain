@@ -8,6 +8,7 @@ preview = ["pixi-build"]
 
 [dependencies]
 smcnn-core = { path = "../../../smcnn/core" }
+utils-genjax = { path = "../../../utils/genjax" }
 3dot = { path = "." }
 python = "<=3.12"
 

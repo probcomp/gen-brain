@@ -173,3 +173,5 @@ cython_debug/
 # pixi
 .pixi/*
 *.conda
+
+.vscode*
