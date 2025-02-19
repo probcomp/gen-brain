@@ -1,0 +1,36 @@
+[workspace]
+channels = [
+  "https://prefix.dev/pixi-build-backends",
+  "https://prefix.dev/conda-forge",
+]
+platforms = ["win-64", "linux-64", "osx-arm64"]
+preview = ["pixi-build"]
+
+[dependencies]
+smcnn-core = { path = "../../smcnn/core" }
+genjax-utils = { path = "." }
+python = "<=3.12"
+
+[pypi-dependencies]
+genjax = ">=0.8.2.dev1,<0.9"
+jax = ">=0.4.38, <0.5"
+pillow = ">=10.4.0, <11"
+ipython = ">=8.32.0, <9"
+ipykernel = ">=6.29.5, <7"
+seaborn = ">=0.13.2, <0.14"
+numpy = "<2.0.0"
+tensorflow-probability = ">=0.23.0, <0.24"
+tensorflow = ">=2.18.0, <3"
+
+[package]
+name = "genjax-utils"
+version = "0.1.0"
+
+[package.build]
+backend = { name = "pixi-build-python", version = "0.1.*" }
+
+[package.host-dependencies]
+hatchling = "==1.26.3"
+python = "<=3.12"
+
+[package.run-dependencies]
