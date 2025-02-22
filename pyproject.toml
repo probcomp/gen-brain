@@ -1,8 +1,13 @@
 [project]
-dependencies = ["smcnn-core"]
+dependencies = [
+    "genbrain",
+    "genbrain_smcnn_core",
+    "genbrain_smcnn_bioreal",
+    "genbrain_model_3dot",
+    "genbrain_utils_genjax"
+]
 name = "genbrain"
 requires-python = "<= 3.12"
-#scripts = { smcnn-core-demo-main = "smcnn-core-demo:main" }
 version = "0.1.0"
 
 [build-system]

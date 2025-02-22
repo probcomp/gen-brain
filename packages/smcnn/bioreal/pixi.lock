@@ -3497,7 +3497,7 @@ packages:
   sha256: 4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274
   requires_python: '>=2.7,!=3.0.*,!=3.1.*,!=3.2.*'
 - conda: .
-  name: smcnn_core
+  name: smcnn_bioreal
   version: 0.1.0
   build: pyhbf21a9e_0
   subdir: noarch
@@ -3505,7 +3505,7 @@ packages:
   - numpy <2.0.0
   - python
   input:
-    hash: 09a5101601108b2fdc7269f8890fabc63e17a3fe2612149302050243c3153375
+    hash: 6b6d36d2f2f7835bbb9c9dfe242fa1b3494743975477f6ce16813b22b7cd4f76
     globs:
     - pixi.toml
 - pypi: https://files.pythonhosted.org/packages/f1/7b/ce1eafaf1a76852e2ec9b22edecf1daa58175c090266e9f6c64afcd81d91/stack_data-0.6.3-py3-none-any.whl
