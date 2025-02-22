@@ -4,7 +4,7 @@ authors = [
     {name = "Andrew Bolton", email = "andrew@chi-fro.org"}
 ]
 
-dependencies = ["ipykernel"]
+dependencies = []
 name = "genbrain_point_light_studio"
 requires-python = "<= 3.12"
 version = "0.1.0"
