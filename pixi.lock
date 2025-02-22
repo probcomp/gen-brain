@@ -233,7 +233,7 @@ packages:
   - numpy <2.0.0
   - python
   input:
-    hash: b6e4ee5036f38f2b2e98c1a7d4469741234afa8d4943b919db860938711a7ac3
+    hash: 804d9b5068b1befcf73819a7e698af42736623882810e65c850fde0ba6dd97d7
     globs:
     - pixi.toml
 - conda: packages/utils/genjax
