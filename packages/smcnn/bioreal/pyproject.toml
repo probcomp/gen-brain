@@ -5,7 +5,7 @@ authors = [
 ]
 
 dependencies = []
-name = "genbrain_smcnn_core"
+name = "genbrain_smcnn_bioreal"
 requires-python = "<= 3.12"
 version = "0.1.0"
 
