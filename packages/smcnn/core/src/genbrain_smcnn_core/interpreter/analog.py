@@ -1,6 +1,6 @@
 import numpy as np
 import jax
-from smcnn.core.interpreter.digital import (
+from genbrain_smcnn_core.interpreter.digital import (
     Resampler,
     Particle,
     SampleScore_Base,

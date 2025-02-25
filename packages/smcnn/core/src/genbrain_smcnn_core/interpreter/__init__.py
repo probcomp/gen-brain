@@ -47,7 +47,7 @@ def filter_variable(v, variables):
     return list(filter(lambda x: x["variable"] == v, variables))[0]
 
 
-def snmc_particle_filter_step_variables(
+def smcnn_particle_filter_step_variables(
     key,
     proposal,
     proposal_args,
@@ -187,7 +187,7 @@ def snmc_particle_filter_step_variables(
 
 
 # will need to rewrite if there are dependencies in the obs model.
-def snmc_particle_filter_score_obs(
+def smcnn_particle_filter_score_obs(
     key, observation, obs_model, obs_args, obs_variables, model_variables, particles
 ):
     # print("scoring observations")
@@ -212,7 +212,7 @@ def snmc_particle_filter_score_obs(
     return particles
 
 
-def initialize_snmc_particle_filter(
+def initialize_smcnn_particle_filter(
     key,
     variables,
     initial_model,
@@ -240,7 +240,7 @@ def initialize_snmc_particle_filter(
     # the first observation.
     model_args = [() for i in range(num_particles)]
     proposal_args = [first_observation for i in range(num_particles)]
-    particles = snmc_particle_filter_step_variables(
+    particles = smcnn_particle_filter_step_variables(
         key,
         initial_proposal,
         proposal_args,
@@ -256,7 +256,7 @@ def initialize_snmc_particle_filter(
         for p in particles
     ]
     # print(obs_args)
-    particles = snmc_particle_filter_score_obs(
+    particles = smcnn_particle_filter_score_obs(
         subkey,
         first_observation,
         obs_model,
@@ -269,7 +269,7 @@ def initialize_snmc_particle_filter(
     return particles
 
 
-def run_snmc_particle_filter(
+def run_smcnn_particle_filter(
     variables,
     initial_model,
     step_model,
@@ -290,7 +290,7 @@ def run_snmc_particle_filter(
 
     key = jax.random.PRNGKey(5000)
     print("Initializing SMCNN Particle Filter")
-    particles = initialize_snmc_particle_filter(
+    particles = initialize_smcnn_particle_filter(
         key,
         variables,
         initial_model,
@@ -326,7 +326,7 @@ def run_snmc_particle_filter(
             for p in particles
         ]
         proposal_args = [m_args + tuple([*observation]) for m_args in model_args]
-        particles = snmc_particle_filter_step_variables(
+        particles = smcnn_particle_filter_step_variables(
             key,
             step_proposal,
             proposal_args,
@@ -341,7 +341,7 @@ def run_snmc_particle_filter(
             tuple([v["support"][p.choicemap[v["variable"]]] for v in model_variables])
             for p in particles
         ]
-        particles = snmc_particle_filter_score_obs(
+        particles = smcnn_particle_filter_score_obs(
             subkey,
             observation,
             obs_model,

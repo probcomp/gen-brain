@@ -160,7 +160,7 @@ class Resampler:
 # SampleScores using lambdas.
 # i.e. { varb : lambda p, q: SampleScore(p, q, npa, varb) } – nice this worked well.
 # a pattern might be, if you call varb on this dictionary, it
-# automatically creates the SampleScore and runs snmc.
+# automatically creates the SampleScore and runs smcnn.
 # once all keys have been called, you score the entire particle.
 # you can say "if i score all of the variables in the sample scores dict,
 # I yield a joint score and mark myself as complete.
