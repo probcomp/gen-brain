@@ -1,9 +1,6 @@
 import itertools
 import jax
 
-# from genbrain_utils_genjax import smc
-
-
 from genbrain_smcnn_core.distributions import (
     discrete_norm,
     disc_gauss_unnorm,
@@ -96,8 +93,9 @@ egocentric_2d_map = jnp.array(list(itertools.product(visual_angles, visual_angle
 objects = jnp.array([0])
 bool_support = jnp.array([0, 1])
 diams = jnp.arange(1.0, 3.0, 0.1)
-σ_ang = 0.05
-σ_diam = 0.1
+
+σ_ang = 0.05 # type: ignore
+σ_diam = 0.1 
 σ_pos = 0.1
 σ_vel = 0.1
 σ_pos_model = 1
@@ -105,21 +103,17 @@ diams = jnp.arange(1.0, 3.0, 0.1)
 σ_ang_obs = 0.1
 pixflip_noise = 0.03
 
-
 def probvecs_to_R3(arr1, arr2, arr3):
     probmat2d = jnp.outer(arr1, arr2)
     result = probmat2d[:, :, None] * arr3
     return jnp.ravel(result)
 
-
 def probvecs_to_R2(arr1, arr2):
     probmat2d = jnp.outer(arr1, arr2)
     return jnp.ravel(probmat2d)
 
-
 def index_pytree(pytree, idx):
     return tree_util.tree_map(lambda x: x[idx], pytree)
-
 
 # there are incompatible combinations of z and r, b/c r is the hyp and
 # can't be smaller than z.
@@ -273,29 +267,6 @@ def obj_to_ego_matter(xyz, radius):
 
 # the angles are correct here, but the arg of the highest ego prob corresponds to depth 1, and it is 5. i think this is because the close gaussians are cut off and renormed, so nearby gaussians will add more weight (i.e. the gaussian cloud will be cut off and renormed). use an unnormed truncated gaussian for addition.
 
-
-# def plot_spherical_probs(prob_arr_jx):
-#     prob_arr_np = np.array(prob_arr_jx)
-#     fig = plt.figure(figsize=(8, 8))
-#     ax = fig.add_subplot(111, projection="3d")
-#     # Normalize values for colormap
-#     colors = plt.cm.Purples(prob_arr_np)
-#     plot_thresh = 0.05
-#     for i, (th, phi, r) in enumerate(egocentric_3d_map):
-#         x, y, z = spherical_to_xyz(th, phi, r)
-#         color = colors[i]
-#         if prob_arr_np[i] > plot_thresh:
-#             print(x, y, z)
-#             ax.scatter(x, y, z, c=color, marker="o", alpha=prob_arr_np[i])
-#     ax.set_xlabel("X")
-#     ax.set_ylabel("Y")
-#     ax.set_zlabel("Z")
-#     ax.set_xlim([xs[0], xs[-1]])
-#     ax.set_ylim([ys[0], ys[-1]])
-#     ax.set_zlim([zs[0], zs[-1]])
-#     plt.show()
-
-
 @genjax.vmap(in_axes=0)
 @genjax.gen
 def egocentric_matter_map(prob_occupied):
@@ -304,7 +275,6 @@ def egocentric_matter_map(prob_occupied):
         @ "ego_matter"
     )
     return matter
-
 
 @genjax.gen
 def initial_model():
@@ -318,11 +288,6 @@ def initial_model():
     egocentric_probability_map = obj_to_ego_matter(xyzₜ, diam / 2)
     vc_θϕr = egocentric_matter_map(egocentric_probability_map) @ "ego_pos"
     return (vₜ, xyzₜ, vc_θϕr, lights, diam)
-
-
-# the -inf score is from vcr. need to reason through why Q's proposed matter map should
-# yield six -inf scores.
-
 
 @genjax.gen
 def step_model(vₚ, xyzₚ, vc_θϕrₚ, lightsₚ, diamₚ):
@@ -391,33 +356,9 @@ def dig_2d_array(white_indices):
         jnp.arange(len(egocentric_2d_map))
     ).astype(int)
 
-
-# def collect_quil_frames(directory, file_pattern="frame-*.png"):
-#     frame_regex = re.compile(r"frame-(\d+)\.png")
-#     frames = []
-#     for filename in os.listdir(directory):
-#         match = frame_regex.match(filename)
-#         if match:
-#             frame_number = int(match.group(1))
-#             frames.append((frame_number, os.path.join(directory, filename)))
-#     frames.sort(key=lambda x: x[0])
-#     frame_paths = [path for _, path in frames]
-#     numpy_frames = []
-#     for path in frame_paths:
-#         with Image.open(path) as img:
-#             # this must be going downwards?
-#             im = img.convert("L").point(lambda p: 1 if p > 0 else 0)
-#             numpy_frames.append((np.transpose(np.flipud(np.array(im))) > 0).astype(int))
-#     return numpy_frames
-
-
-# this has got to be just the loading of pixels from the .png read. Everything in here works. It's probably upside down or sideways or something. in the imread, the Y-axis is upside down that's probably it.
-
-
-# these calculations are right. this is agnostic to the actual frames. its tell you "if you are at location x = 0, y=999, your theta  phi is tp"
-def generate_pix_to_ego_2d_map(frm_indices_array, frame):
+def generate_pix_to_ego_2d_map(frm_indices_array, frame_shape):
     def map_to_ego_2d(pix):
-        x_pix, y_pix = frame.shape
+        x_pix, y_pix = frame_shape
         θ = round_to_support(
             jnp.arctan((pix[0] - (x_pix / 2)) / jnp.abs(observer)), visual_angles
         )
@@ -428,31 +369,21 @@ def generate_pix_to_ego_2d_map(frm_indices_array, frame):
             jnp.all(egocentric_2d_map == jnp.array([θ, ϕ]), axis=1), size=1
         )[0][0]
         return ego_ind
-
     return jax.vmap(lambda pix: map_to_ego_2d(pix))(frm_indices_array)
 
-
-# you first start by creating an angle pair for each pixel in the 600x600 image.
-# you will now have a 1000^2 length array of indexes that take you from pixel locations to indexes in egocentric_2d_map
-
-
-# obs_frames = collect_quil_frames("/Users/nightcrawler/PointLightClj/saved_animation")[
-#     1:
-# ]
-# frame_indices = jnp.indices(obs_frames[0].shape)
-# frame_indices_array = jnp.stack(
-#     [frame_indices[0].ravel(), frame_indices[1].ravel()], axis=-1
-# )
-# all this is telling you is where in a x by y grid of size 1000, 1000 each egocentric 2d angle is. its all correct.
-# pix_to_ego_2d_map = generate_pix_to_ego_2d_map(
-#     frame_indices_array, obs_frames[1]
-# ).reshape(obs_frames[1].shape)
+frame_shape = (600, 600)
+frame_indices = jnp.indices(frame_shape)
+frame_indices_array = jnp.stack(
+    [frame_indices[0].ravel(), frame_indices[1].ravel()], axis=-1
+)
+pix_to_ego_2d_map = generate_pix_to_ego_2d_map(
+    frame_indices_array, frame_shape).reshape(frame_shape)
 
 
-# def find_occupied_2d_angles(frame):
-#     mask = jnp.where(frame, 1.0, jnp.nan)
-#     occupied_inds = mask * pix_to_ego_2d_map
-#     return dig_2d_array(occupied_inds)
+def find_occupied_2d_angles(frame):
+    mask = jnp.where(frame, 1.0, jnp.nan)
+    occupied_inds = mask * pix_to_ego_2d_map
+    return dig_2d_array(occupied_inds)
 
 
 # observations = jax.vmap(lambda obs: find_occupied_2d_angles(obs))(jnp.array(obs_frames))
