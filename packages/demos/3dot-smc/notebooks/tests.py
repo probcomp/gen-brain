@@ -13,13 +13,20 @@ import os
 #console = genjax.pretty()
 # test smcnn get_categorical_probs
 
-def get_categorical_probs_test(key, genfunc_imp, v, args, constraints):
-    trace, w = genfunc_imp(key, constraints, args)
+def get_catprobs(trace, v):
     if isinstance(v, tuple):
         probs, support = trace.get_subtrace(*v).get_args()
     else:
         probs, support = trace.get_subtrace((v,)).args
     return probs
+
+def get_categorical_probs_obs_test(key, genfunc_sim, v, args):
+    trace = genfunc_sim(key, args)
+    return get_catprobs(trace, v)
+    
+def get_categorical_probs_test(key, genfunc_imp, v, args, constraints):
+    trace, w = genfunc_imp(key, constraints, args)
+    return get_catprobs(trace, v)
 
 def collect_frames(directory="../data/", file_pattern="frame-*.png"):
     frame_regex = re.compile(r"frame-(\d+)\.png")
@@ -67,9 +74,9 @@ tr_constr, w = init_prop_imp(key,
                              CMB.d({ ("dot", "ego_pos", "ego_matter") : ego_constraint}), 
                              (vis_angle_observations[20],)) 
 
-# constraining the choicemaps works. retvals and choicemaps are the same. 
-(tr_prop.get_retval()[2] == tr_constr.get_retval()[2]).all()
-(ego_constraint.value == tr_constr.get_choices()["dot", "ego_pos", "ego_matter"].value).all()
+# constraining the choicemaps works. retvals and choicemaps are the same. assert these as tests. 
+assert((tr_prop.get_retval()[2] == tr_constr.get_retval()[2]).all())
+assert((ego_constraint.value == tr_constr.get_choices()["dot", "ego_pos", "ego_matter"].value).all())
 
 # now test that the probabilities of xyz with a different input argument but the exact same ego_pos constraint correspond to the correct xyz interpretation. if constraint isn't working, probabilities will be very similar. 
 prop_probs_xyz_ego_constrained = get_categorical_probs_test(
@@ -80,9 +87,9 @@ prop_probs_20_arg_no_constraint = get_categorical_probs_test(
     key, init_prop_imp, ("dot", "xyz"), (vis_angle_observations[20],), 
     CMB.d({}))
 
-# All patterns work. If you constrain ego_pos, you get the same probabilities at xyz regardless of argument. If you let the different arguments control the sampling with no constraint, probs at xyz end up different. 
-print((prop_probs_xyz == prop_probs_xyz_ego_constrained).all())
-print((prop_probs_20_arg_no_constraint == prop_probs_xyz_ego_constrained).all())
+# All patterns work. If you constrain ego_pos, you get the same probabilities at xyz regardless of argument. If you let the different arguments control the sampling with no constraint, probs at xyz end up different. assert that these logical statements are true to make a test. 
+assert((prop_probs_xyz == prop_probs_xyz_ego_constrained).all())
+assert(not (prop_probs_20_arg_no_constraint == prop_probs_xyz_ego_constrained).all())
 
 
 # one issue here is that the interpreter cares about the order of the proposal. the order is different in the proposal switch combinator -- if it goes down the vis path, you go obs->latents. if it goes the other way, you go markov. i think this might be a problem. better to keep the model the way it is and fix the ordering issue in the interpreter (i.e. provide dep maps for both switch outcomes, which is not a huge deal). 
