@@ -883,14 +883,37 @@ packages:
   sha256: 52b182313f7330389f72b069ba00f174cfe2a06411099547288839c6cbafbd54
   requires_python: '>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*'
 - conda: .
-  name: gbmodel_d3dot
+  name: genbrain_model_3dot
   version: 0.1.0
   build: pyhbf21a9e_0
   subdir: noarch
   depends:
   - python
   input:
-    hash: 040f2e5640b41b065f78a4586de7920335a7be6ef83f26b0f0f528a7f3fa4c76
+    hash: 79fdc7ad425dc072e759bf7a42f491e4abbd5c0408f9cbfb83ed052d60ae83fc
+    globs:
+    - pixi.toml
+- conda: ../../../smcnn/core
+  name: genbrain_smcnn_core
+  version: 0.1.0
+  build: pyhbf21a9e_0
+  subdir: noarch
+  depends:
+  - numpy <2.0.0
+  - python
+  input:
+    hash: 804d9b5068b1befcf73819a7e698af42736623882810e65c850fde0ba6dd97d7
+    globs:
+    - pixi.toml
+- conda: ../../../utils/genjax
+  name: genbrain_utils_genjax
+  version: 0.1.0
+  build: pyhbf21a9e_0
+  subdir: noarch
+  depends:
+  - python
+  input:
+    hash: 465ce8c5e6a2df6b81797166b6ef4c188082b19ca30f41badcb62f80786157bb
     globs:
     - pixi.toml
 - pypi: https://files.pythonhosted.org/packages/2f/26/633c35708727a1fb553132added3d105ccd3af6ad3106be13d3dcf7533c9/genjax-0.8.2.dev1-py3-none-any.whl
@@ -3269,18 +3292,6 @@ packages:
   version: 1.17.0
   sha256: 4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274
   requires_python: '>=2.7,!=3.0.*,!=3.1.*,!=3.2.*'
-- conda: ../../../smcnn/core
-  name: smcnn_core
-  version: 0.1.0
-  build: pyhbf21a9e_0
-  subdir: noarch
-  depends:
-  - numpy <2.0.0
-  - python
-  input:
-    hash: 09a5101601108b2fdc7269f8890fabc63e17a3fe2612149302050243c3153375
-    globs:
-    - pixi.toml
 - pypi: https://files.pythonhosted.org/packages/f1/7b/ce1eafaf1a76852e2ec9b22edecf1daa58175c090266e9f6c64afcd81d91/stack_data-0.6.3-py3-none-any.whl
   name: stack-data
   version: 0.6.3
@@ -3629,17 +3640,6 @@ packages:
   - pysocks>=1.5.6,!=1.5.7,<2.0 ; extra == 'socks'
   - zstandard>=0.18.0 ; extra == 'zstd'
   requires_python: '>=3.9'
-- conda: ../../../utils/genjax
-  name: utils_genjax
-  version: 0.1.0
-  build: pyhbf21a9e_0
-  subdir: noarch
-  depends:
-  - python
-  input:
-    hash: 32f31b29e662bbce7744283cb606964f2bb3ab1408d09c7faafe10620a7b43ad
-    globs:
-    - pixi.toml
 - conda: https://prefix.dev/conda-forge/win-64/vc-14.3-h5fd82a7_24.conda
   sha256: 7ce178cf139ccea5079f9c353b3d8415d1d49b0a2f774662c355d3f89163d7b4
   md5: 00cf3a61562bd53bd5ea99e6888793d0

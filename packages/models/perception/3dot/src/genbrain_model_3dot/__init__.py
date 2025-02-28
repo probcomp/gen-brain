@@ -14,44 +14,7 @@ from jax import tree_util, jit
 import numpy as np
 from genjax import ChoiceMapBuilder as CMB
 import tensorflow_probability as tfp
-
-# from mpl_toolkits.mplot3d.art3d import Line3DCollection
 tfd = tfp.distributions
-
-# from smc_genjax import run_particle_filter
-# from interpreter_genjax04.snmc_distributions04 import (  # type: ignore
-#     discrete_norm,
-#     disc_gauss_unnorm,
-
-#     discrete_truncnorm,
-#     labeled_categorical,
-#     normalize,
-#     unicat,
-#     upweight_zone,
-# )
-
-# from interpreter_genjax04.snmc_utils_genjax04 import (  # type: ignore
-#     run_snmc_livedemo,
-#     run_snmc_particle_filter,
-#     constrained_step_demo,
-# )
-# from interpreter_genjax04.plot_snmc_run import (
-#     plot_particle_weight_and_state,
-#     snmc_spikes_wrapper,
-#     selectivity_index,
-#     my_tab20,
-#     merge_particle_dicts,
-#     merge_component_dicts,
-#     get_components,
-#     invert_spiketime_labels,
-#     lfp_and_spikes,
-#     lfp_and_spikes_animated,
-#     eeg,
-#     direction_selectivity,
-#     animate_snmc_spikes,
-#     organize_labels_into_layers
-#     )
-
 np.seterr(divide="ignore")
 # console = genjax.pretty()
 
@@ -345,7 +308,6 @@ def obs_model(vₜ, xyzₜ, vc_θϕr, lights, diam):
 
 
 """ GETTING OBSERVATIONS """
-
 
 @jit
 def dig_2d_array(white_indices):

@@ -15,24 +15,24 @@ key, subkey = jax.random.split(key, 2)
 def get_categorical_probs_obs(key, genfunc_sim, v, args):
     trace = genfunc_sim(key, args)
     if isinstance(v, tuple):
-        probs, support = trace.get_subtrace((v[0],)).inner.get_subtrace((v[1],)).args
+        probs = trace.get_subtrace((v[0],)).inner.get_subtrace((v[1],)).args
     else:
-        probs, support = trace.get_subtrace((v,)).args
-    return probs, support
+        probs = trace.get_subtrace((v,)).args
+    return probs[0]
 
 
 def get_categorical_probs(key, genfunc_imp, v, args, constraints):
     trace, w = genfunc_imp(key, constraints, args)
     if isinstance(v, tuple):
-        probs, support = (
+        probs = (
             trace.get_subtrace((v[0],))
             .subtraces[trace.get_subtrace((v[0],)).args[0]]
             .get_subtrace((v[1],))
             .args
         )
     else:
-        probs, support = trace.get_subtrace((v,)).args
-    return probs, support
+        probs = trace.get_subtrace((v,)).args
+    return probs[0]
 
 
 def get_variable_id(variable_dict, prop_model_obs):
@@ -68,7 +68,7 @@ def smcnn_particle_filter_step_variables(
             empty_cm = CMB.d({})
             for prop_v in proposal_variables:
                 if prop_v["parents"] == []:
-                    q_probs, _ = get_categorical_probs(
+                    q_probs = get_categorical_probs(
                         key,
                         proposal,
                         get_variable_id(prop_v, proposal_label),
@@ -102,7 +102,7 @@ def smcnn_particle_filter_step_variables(
                     parent_sample_times = [
                         particle.samplescores[v].sample_time for v in prop_v["parents"]
                     ]
-                    q_probs, _ = get_categorical_probs(
+                    q_probs = get_categorical_probs(
                         key,
                         proposal,
                         get_variable_id(prop_v, proposal_label),
@@ -148,7 +148,7 @@ def smcnn_particle_filter_step_variables(
                 model_variable["variable"]
             ].sample_time
             score_start_time = np.max(parents_sample_times + [self_sample_time])
-            p_probs, _ = get_categorical_probs(
+            p_probs = get_categorical_probs(
                 key,
                 model,
                 get_variable_id(model_variable, model_label),
@@ -196,7 +196,7 @@ def smcnn_particle_filter_score_obs(
         subkey = jax.random.split(key, len(particles))
         for obs_arg, particle in zip(obs_args, particles):
             key, subkey = jax.random.split(key, 2)
-            probs, _ = get_categorical_probs_obs(
+            probs = get_categorical_probs_obs(
                 subkey, obs_model, get_variable_id(obs_variable, "obs"), obs_arg
             )
             if obs_variable["support"].shape == ():

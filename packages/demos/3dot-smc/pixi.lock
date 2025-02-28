@@ -68,7 +68,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/b8/25/155f9f080d5e4bc0082edfda032ea2bc2b8fab3f4d25d46c1e9dd22a1a89/flatbuffers-25.2.10-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/95/70/2a781bedc1c45a0c61d29c56425609b22ed7f971da5d7e5df2679488741b/fonttools-4.56.0-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/a3/61/8001b38461d751cd1a0c3a6ae84346796a5758123f3ed97a1b121dfbf4f3/gast-0.6.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/2f/26/633c35708727a1fb553132added3d105ccd3af6ad3106be13d3dcf7533c9/genjax-0.8.2.dev1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/42/e0/8dbd956d2a11b1b54f0b61adc9354f2df07381745d3e778bb381eebe209a/genjax-0.9.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e7/94/a699dfaefc400e2b22bc565f9866aa2eb8e1f28ca716df263b4ce121850a/genstudio-2025.2.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a3/de/c648ef6835192e6e2cc03f40b19eeda4382c49b5bafb43d88b931c4c74ac/google_pasta-0.2.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/ae/50/64c94cfc4db8d9ed07da71427a936b5a2bd2b27c66269b42fbda82c7c7a4/grpcio-1.70.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
@@ -197,7 +197,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/b8/25/155f9f080d5e4bc0082edfda032ea2bc2b8fab3f4d25d46c1e9dd22a1a89/flatbuffers-25.2.10-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/39/32/71cfd6877999576a11824a7fe7bc0bb57c5c72b1f4536fa56a3e39552643/fonttools-4.56.0-cp312-cp312-macosx_10_13_universal2.whl
       - pypi: https://files.pythonhosted.org/packages/a3/61/8001b38461d751cd1a0c3a6ae84346796a5758123f3ed97a1b121dfbf4f3/gast-0.6.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/2f/26/633c35708727a1fb553132added3d105ccd3af6ad3106be13d3dcf7533c9/genjax-0.8.2.dev1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/42/e0/8dbd956d2a11b1b54f0b61adc9354f2df07381745d3e778bb381eebe209a/genjax-0.9.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e7/94/a699dfaefc400e2b22bc565f9866aa2eb8e1f28ca716df263b4ce121850a/genstudio-2025.2.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a3/de/c648ef6835192e6e2cc03f40b19eeda4382c49b5bafb43d88b931c4c74ac/google_pasta-0.2.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/30/5c/60eb8a063ea4cb8d7670af8fac3f2033230fc4b75f62669d67c66ac4e4b0/grpcio-1.70.0-cp312-cp312-macosx_10_14_universal2.whl
@@ -328,7 +328,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/b8/25/155f9f080d5e4bc0082edfda032ea2bc2b8fab3f4d25d46c1e9dd22a1a89/flatbuffers-25.2.10-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/6f/e3/5a181a85777f7809076e51f7422e0dc77eb04676c40ec8bf6a49d390d1ff/fonttools-4.56.0-cp312-cp312-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/a3/61/8001b38461d751cd1a0c3a6ae84346796a5758123f3ed97a1b121dfbf4f3/gast-0.6.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/2f/26/633c35708727a1fb553132added3d105ccd3af6ad3106be13d3dcf7533c9/genjax-0.8.2.dev1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/42/e0/8dbd956d2a11b1b54f0b61adc9354f2df07381745d3e778bb381eebe209a/genjax-0.9.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e7/94/a699dfaefc400e2b22bc565f9866aa2eb8e1f28ca716df263b4ce121850a/genstudio-2025.2.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a3/de/c648ef6835192e6e2cc03f40b19eeda4382c49b5bafb43d88b931c4c74ac/google_pasta-0.2.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/17/c3/a7a225645a965029ed432e5b5e9ed959a574e62100afab553eef58be0e37/grpcio-1.70.0-cp312-cp312-win_amd64.whl
@@ -932,7 +932,7 @@ packages:
   - numpy <2.0.0
   - python
   input:
-    hash: 828ab600853ecaec6516ed5532a7d6493f08dda95199bad354e3654229938c89
+    hash: 6e108073af119ad2ad841a07535aabe8c1064bdc4c3b48f8fffbb5ae66508aa2
     globs:
     - pixi.toml
 - conda: ../../models/perception/3dot
@@ -969,21 +969,21 @@ packages:
     hash: 465ce8c5e6a2df6b81797166b6ef4c188082b19ca30f41badcb62f80786157bb
     globs:
     - pixi.toml
-- pypi: https://files.pythonhosted.org/packages/2f/26/633c35708727a1fb553132added3d105ccd3af6ad3106be13d3dcf7533c9/genjax-0.8.2.dev1-py3-none-any.whl
+- pypi: https://files.pythonhosted.org/packages/42/e0/8dbd956d2a11b1b54f0b61adc9354f2df07381745d3e778bb381eebe209a/genjax-0.9.3-py3-none-any.whl
   name: genjax
-  version: 0.8.2.dev1
-  sha256: b197198253ba422aaa63bb72584e571c8471b2cdc157e8bb7fead0d9b2a8490a
+  version: 0.9.3
+  sha256: a091ae68eb85698db06a37723d165c707e292d45e76f2c00d85233f59269c799
   requires_dist:
   - beartype>=0.18.5,<0.19.0
   - deprecated>=1.2.14,<2.0.0
-  - genstudio==2024.11.15 ; extra == 'all' or extra == 'genstudio'
+  - genstudio>=2025.2.1 ; extra == 'all' or extra == 'genstudio'
   - jax>=0.4.24,<0.5.0
   - jaxtyping>=0.2.24,<0.3.0
   - numpy>=1.22,<2.0.0
   - penzai>=0.2.2,<0.3.0
   - tensorflow-probability>=0.23.0,<0.24.0
   - treescope>=0.1.5,<0.2.0
-  requires_python: '>=3.10,<3.13'
+  requires_python: '>=3.11,<4.0'
 - pypi: https://files.pythonhosted.org/packages/e7/94/a699dfaefc400e2b22bc565f9866aa2eb8e1f28ca716df263b4ce121850a/genstudio-2025.2.2-py3-none-any.whl
   name: genstudio
   version: 2025.2.2
