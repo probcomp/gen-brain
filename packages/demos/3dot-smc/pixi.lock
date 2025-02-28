@@ -53,7 +53,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/25/8a/c46dcc25341b5bce5472c718902eb3d38600a903b14fa6aeecef3f21a46f/asttokens-3.0.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/2b/03/13dde6512ad7b4557eb792fbcf0c653af6076b81e5941d36ec61f7ce6028/astunparse-1.6.3-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/fc/30/d4986a882011f9df997a55e6becd864812ccfcd821d64aac8570ee39f719/attrs-25.1.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/64/43/7a1259741bd989723272ac7d381a43be932422abcff09a1d9f7ba212cb74/beartype-0.18.5-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/61/ce/9cf60b72e3fbd36a6dd16e31ecbe9ae137a8ead77cb24a5f75302adfc9a9/beartype-0.20.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/38/fc/bce832fd4fd99766c04d1ee0eead6b0ec6486fb100ae5e74c1d91292b982/certifi-2025.1.31-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/3e/a2/513f6cbe752421f16d969e32f3583762bfd583848b763913ddab8d9bfd4f/charset_normalizer-3.4.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/7e/e8/64c37fadfc2816a7701fa8a6ed8d87327c7d54eacfbfb6edab14a2f2be75/cloudpickle-3.1.1-py3-none-any.whl
@@ -68,7 +68,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/b8/25/155f9f080d5e4bc0082edfda032ea2bc2b8fab3f4d25d46c1e9dd22a1a89/flatbuffers-25.2.10-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/95/70/2a781bedc1c45a0c61d29c56425609b22ed7f971da5d7e5df2679488741b/fonttools-4.56.0-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/a3/61/8001b38461d751cd1a0c3a6ae84346796a5758123f3ed97a1b121dfbf4f3/gast-0.6.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/42/e0/8dbd956d2a11b1b54f0b61adc9354f2df07381745d3e778bb381eebe209a/genjax-0.9.3-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/07/94/5801ab5a64a38bae320d458223439630cbeb3e5626ca2962a62be51d8481/genjax-0.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e7/94/a699dfaefc400e2b22bc565f9866aa2eb8e1f28ca716df263b4ce121850a/genstudio-2025.2.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a3/de/c648ef6835192e6e2cc03f40b19eeda4382c49b5bafb43d88b931c4c74ac/google_pasta-0.2.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/ae/50/64c94cfc4db8d9ed07da71427a936b5a2bd2b27c66269b42fbda82c7c7a4/grpcio-1.70.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
@@ -182,7 +182,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/25/8a/c46dcc25341b5bce5472c718902eb3d38600a903b14fa6aeecef3f21a46f/asttokens-3.0.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/2b/03/13dde6512ad7b4557eb792fbcf0c653af6076b81e5941d36ec61f7ce6028/astunparse-1.6.3-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/fc/30/d4986a882011f9df997a55e6becd864812ccfcd821d64aac8570ee39f719/attrs-25.1.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/64/43/7a1259741bd989723272ac7d381a43be932422abcff09a1d9f7ba212cb74/beartype-0.18.5-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/61/ce/9cf60b72e3fbd36a6dd16e31ecbe9ae137a8ead77cb24a5f75302adfc9a9/beartype-0.20.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/38/fc/bce832fd4fd99766c04d1ee0eead6b0ec6486fb100ae5e74c1d91292b982/certifi-2025.1.31-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/0a/9a/dd1e1cdceb841925b7798369a09279bd1cf183cef0f9ddf15a3a6502ee45/charset_normalizer-3.4.1-cp312-cp312-macosx_10_13_universal2.whl
       - pypi: https://files.pythonhosted.org/packages/7e/e8/64c37fadfc2816a7701fa8a6ed8d87327c7d54eacfbfb6edab14a2f2be75/cloudpickle-3.1.1-py3-none-any.whl
@@ -197,7 +197,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/b8/25/155f9f080d5e4bc0082edfda032ea2bc2b8fab3f4d25d46c1e9dd22a1a89/flatbuffers-25.2.10-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/39/32/71cfd6877999576a11824a7fe7bc0bb57c5c72b1f4536fa56a3e39552643/fonttools-4.56.0-cp312-cp312-macosx_10_13_universal2.whl
       - pypi: https://files.pythonhosted.org/packages/a3/61/8001b38461d751cd1a0c3a6ae84346796a5758123f3ed97a1b121dfbf4f3/gast-0.6.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/42/e0/8dbd956d2a11b1b54f0b61adc9354f2df07381745d3e778bb381eebe209a/genjax-0.9.3-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/07/94/5801ab5a64a38bae320d458223439630cbeb3e5626ca2962a62be51d8481/genjax-0.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e7/94/a699dfaefc400e2b22bc565f9866aa2eb8e1f28ca716df263b4ce121850a/genstudio-2025.2.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a3/de/c648ef6835192e6e2cc03f40b19eeda4382c49b5bafb43d88b931c4c74ac/google_pasta-0.2.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/30/5c/60eb8a063ea4cb8d7670af8fac3f2033230fc4b75f62669d67c66ac4e4b0/grpcio-1.70.0-cp312-cp312-macosx_10_14_universal2.whl
@@ -312,7 +312,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/25/8a/c46dcc25341b5bce5472c718902eb3d38600a903b14fa6aeecef3f21a46f/asttokens-3.0.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/2b/03/13dde6512ad7b4557eb792fbcf0c653af6076b81e5941d36ec61f7ce6028/astunparse-1.6.3-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/fc/30/d4986a882011f9df997a55e6becd864812ccfcd821d64aac8570ee39f719/attrs-25.1.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/64/43/7a1259741bd989723272ac7d381a43be932422abcff09a1d9f7ba212cb74/beartype-0.18.5-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/61/ce/9cf60b72e3fbd36a6dd16e31ecbe9ae137a8ead77cb24a5f75302adfc9a9/beartype-0.20.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/38/fc/bce832fd4fd99766c04d1ee0eead6b0ec6486fb100ae5e74c1d91292b982/certifi-2025.1.31-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/21/5b/1b390b03b1d16c7e382b561c5329f83cc06623916aab983e8ab9239c7d5c/charset_normalizer-3.4.1-cp312-cp312-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/7e/e8/64c37fadfc2816a7701fa8a6ed8d87327c7d54eacfbfb6edab14a2f2be75/cloudpickle-3.1.1-py3-none-any.whl
@@ -328,7 +328,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/b8/25/155f9f080d5e4bc0082edfda032ea2bc2b8fab3f4d25d46c1e9dd22a1a89/flatbuffers-25.2.10-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/6f/e3/5a181a85777f7809076e51f7422e0dc77eb04676c40ec8bf6a49d390d1ff/fonttools-4.56.0-cp312-cp312-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/a3/61/8001b38461d751cd1a0c3a6ae84346796a5758123f3ed97a1b121dfbf4f3/gast-0.6.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/42/e0/8dbd956d2a11b1b54f0b61adc9354f2df07381745d3e778bb381eebe209a/genjax-0.9.3-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/07/94/5801ab5a64a38bae320d458223439630cbeb3e5626ca2962a62be51d8481/genjax-0.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e7/94/a699dfaefc400e2b22bc565f9866aa2eb8e1f28ca716df263b4ce121850a/genstudio-2025.2.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a3/de/c648ef6835192e6e2cc03f40b19eeda4382c49b5bafb43d88b931c4c74ac/google_pasta-0.2.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/17/c3/a7a225645a965029ed432e5b5e9ed959a574e62100afab553eef58be0e37/grpcio-1.70.0-cp312-cp312-win_amd64.whl
@@ -510,38 +510,70 @@ packages:
   - mypy>=1.11.1 ; python_full_version >= '3.10' and platform_python_implementation == 'CPython' and extra == 'tests-mypy'
   - pytest-mypy-plugins ; python_full_version >= '3.10' and platform_python_implementation == 'CPython' and extra == 'tests-mypy'
   requires_python: '>=3.8'
-- pypi: https://files.pythonhosted.org/packages/64/43/7a1259741bd989723272ac7d381a43be932422abcff09a1d9f7ba212cb74/beartype-0.18.5-py3-none-any.whl
+- pypi: https://files.pythonhosted.org/packages/61/ce/9cf60b72e3fbd36a6dd16e31ecbe9ae137a8ead77cb24a5f75302adfc9a9/beartype-0.20.0-py3-none-any.whl
   name: beartype
-  version: 0.18.5
-  sha256: 5301a14f2a9a5540fe47ec6d34d758e9cd8331d36c4760fc7a5499ab86310089
+  version: 0.20.0
+  sha256: 090d10e3540b3fca209a0ab5f1c15f9652a075da0a7249c2e6713011e9e5f6ef
   requires_dist:
-  - typing-extensions>=3.10.0.0 ; extra == 'all'
-  - coverage>=5.5 ; extra == 'dev'
-  - equinox ; extra == 'dev'
-  - pandera ; extra == 'dev'
-  - typing-extensions>=3.10.0.0 ; extra == 'dev'
-  - pytest>=4.0.0 ; extra == 'dev'
-  - tox>=3.20.1 ; extra == 'dev'
-  - sphinx>=4.2.0,<6.0.0 ; extra == 'dev'
-  - pydata-sphinx-theme<=0.7.2 ; extra == 'dev'
   - autoapi>=0.9.0 ; extra == 'dev'
-  - sphinxext-opengraph>=0.7.5 ; extra == 'dev'
+  - click ; extra == 'dev'
+  - coverage>=5.5 ; extra == 'dev'
+  - equinox ; sys_platform == 'linux' and extra == 'dev'
+  - jax[cpu] ; sys_platform == 'linux' and extra == 'dev'
+  - jaxtyping ; sys_platform == 'linux' and extra == 'dev'
+  - langchain ; extra == 'dev'
   - mypy>=0.800 ; platform_python_implementation != 'PyPy' and extra == 'dev'
-  - sphinx ; python_full_version >= '3.8' and extra == 'dev'
+  - numba ; python_full_version < '3.13' and extra == 'dev'
   - numpy ; platform_python_implementation != 'PyPy' and sys_platform != 'darwin' and extra == 'dev'
-  - sphinx>=4.2.0,<6.0.0 ; extra == 'doc-rtd'
-  - pydata-sphinx-theme<=0.7.2 ; extra == 'doc-rtd'
+  - pandera ; extra == 'dev'
+  - pydata-sphinx-theme<=0.7.2 ; extra == 'dev'
+  - pygments ; extra == 'dev'
+  - pyright>=1.1.370 ; extra == 'dev'
+  - pytest>=4.0.0 ; extra == 'dev'
+  - sphinx ; python_full_version >= '3.8' and extra == 'dev'
+  - sphinx>=4.2.0,<6.0.0 ; extra == 'dev'
+  - sphinxext-opengraph>=0.7.5 ; extra == 'dev'
+  - tox>=3.20.1 ; extra == 'dev'
+  - typing-extensions>=3.10.0.0 ; extra == 'dev'
+  - xarray ; extra == 'dev'
   - autoapi>=0.9.0 ; extra == 'doc-rtd'
+  - pydata-sphinx-theme<=0.7.2 ; extra == 'doc-rtd'
+  - sphinx>=4.2.0,<6.0.0 ; extra == 'doc-rtd'
   - sphinxext-opengraph>=0.7.5 ; extra == 'doc-rtd'
-  - equinox ; extra == 'test-tox'
-  - pandera ; extra == 'test-tox'
-  - typing-extensions>=3.10.0.0 ; extra == 'test-tox'
-  - pytest>=4.0.0 ; extra == 'test-tox'
-  - coverage>=5.5 ; extra == 'test-tox-coverage'
+  - click ; extra == 'test'
+  - coverage>=5.5 ; extra == 'test'
+  - equinox ; sys_platform == 'linux' and extra == 'test'
+  - jax[cpu] ; sys_platform == 'linux' and extra == 'test'
+  - jaxtyping ; sys_platform == 'linux' and extra == 'test'
+  - langchain ; extra == 'test'
+  - mypy>=0.800 ; platform_python_implementation != 'PyPy' and extra == 'test'
+  - numba ; python_full_version < '3.13' and extra == 'test'
+  - numpy ; platform_python_implementation != 'PyPy' and sys_platform != 'darwin' and extra == 'test'
+  - pandera ; extra == 'test'
+  - pygments ; extra == 'test'
+  - pyright>=1.1.370 ; extra == 'test'
+  - pytest>=4.0.0 ; extra == 'test'
+  - sphinx ; python_full_version >= '3.8' and extra == 'test'
+  - tox>=3.20.1 ; extra == 'test'
+  - typing-extensions>=3.10.0.0 ; extra == 'test'
+  - xarray ; extra == 'test'
+  - click ; extra == 'test-tox'
+  - equinox ; sys_platform == 'linux' and extra == 'test-tox'
+  - jax[cpu] ; sys_platform == 'linux' and extra == 'test-tox'
+  - jaxtyping ; sys_platform == 'linux' and extra == 'test-tox'
+  - langchain ; extra == 'test-tox'
   - mypy>=0.800 ; platform_python_implementation != 'PyPy' and extra == 'test-tox'
-  - sphinx ; python_full_version >= '3.8' and extra == 'test-tox'
+  - numba ; python_full_version < '3.13' and extra == 'test-tox'
   - numpy ; platform_python_implementation != 'PyPy' and sys_platform != 'darwin' and extra == 'test-tox'
-  requires_python: '>=3.8.0'
+  - pandera ; extra == 'test-tox'
+  - pygments ; extra == 'test-tox'
+  - pyright>=1.1.370 ; extra == 'test-tox'
+  - pytest>=4.0.0 ; extra == 'test-tox'
+  - sphinx ; python_full_version >= '3.8' and extra == 'test-tox'
+  - typing-extensions>=3.10.0.0 ; extra == 'test-tox'
+  - xarray ; extra == 'test-tox'
+  - coverage>=5.5 ; extra == 'test-tox-coverage'
+  requires_python: '>=3.9'
 - conda: https://prefix.dev/conda-forge/linux-64/bzip2-1.0.8-h4bc722e_7.conda
   sha256: 5ced96500d945fb286c9c838e54fa759aa04a7129c59800f0846b4335cee770d
   md5: 62ee74e96c5ebb0af99386de58cf9553
@@ -932,7 +964,7 @@ packages:
   - numpy <2.0.0
   - python
   input:
-    hash: 6e108073af119ad2ad841a07535aabe8c1064bdc4c3b48f8fffbb5ae66508aa2
+    hash: 54ea1a307a016c871bd9c95249a795ea3d3771c2f79e62e6063128fc81c0c0d7
     globs:
     - pixi.toml
 - conda: ../../models/perception/3dot
@@ -969,12 +1001,12 @@ packages:
     hash: 465ce8c5e6a2df6b81797166b6ef4c188082b19ca30f41badcb62f80786157bb
     globs:
     - pixi.toml
-- pypi: https://files.pythonhosted.org/packages/42/e0/8dbd956d2a11b1b54f0b61adc9354f2df07381745d3e778bb381eebe209a/genjax-0.9.3-py3-none-any.whl
+- pypi: https://files.pythonhosted.org/packages/07/94/5801ab5a64a38bae320d458223439630cbeb3e5626ca2962a62be51d8481/genjax-0.10.0-py3-none-any.whl
   name: genjax
-  version: 0.9.3
-  sha256: a091ae68eb85698db06a37723d165c707e292d45e76f2c00d85233f59269c799
+  version: 0.10.0
+  sha256: 04fb26a08fe489693fb8508bf98f60d11ce7972046614490c1455cd86836921a
   requires_dist:
-  - beartype>=0.18.5,<0.19.0
+  - beartype>=0.20.0,<0.21.0
   - deprecated>=1.2.14,<2.0.0
   - genstudio>=2025.2.1 ; extra == 'all' or extra == 'genstudio'
   - jax>=0.4.24,<0.5.0

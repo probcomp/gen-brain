@@ -16,7 +16,7 @@ python = "<=3.12"
 
 [pypi-dependencies]
 #  genjax = ">=0.8.2.dev1,<0.9"
-genjax = "==0.9.3"
+genjax = "==0.10.0"
 genstudio = ">=2025.2.2,<2026"
 jax = ">=0.4.38, <0.5"
 pillow = ">=10.4.0, <11"
