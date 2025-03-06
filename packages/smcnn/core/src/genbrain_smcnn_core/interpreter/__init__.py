@@ -2,15 +2,13 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 from genjax import ChoiceMapBuilder as CMB
-from . import analog as analog
-from . import digital as digital
+from . import master as master
 
 np.seterr(divide="ignore")
-
 key = jax.random.PRNGKey(10000)
 key, subkey = jax.random.split(key, 2)
-# map_trace_type = genjax._src.generative_functions.combinators.vector.map_combinator.MapTrace
 
+# 3/6/25: replace these. 
 
 def get_categorical_probs_obs(key, genfunc_sim, v, args):
     trace = genfunc_sim(key, args)
@@ -19,7 +17,6 @@ def get_categorical_probs_obs(key, genfunc_sim, v, args):
     else:
         probs = trace.get_subtrace((v,)).args
     return probs[0]
-
 
 def get_categorical_probs(key, genfunc_imp, v, args, constraints):
     trace, w = genfunc_imp(key, constraints, args)
@@ -224,16 +221,11 @@ def initialize_smcnn_particle_filter(
     dig_or_analog,
 ):
     # print("initializing particle filter")
-    model_variables, proposal_variables, obs_variables = variables
+    latent_variables, obs_variables = variables
     key, subkey = jax.random.split(key, 2)
-    if dig_or_analog == "digital":
-        particles = [
-            digital.Particle(neurons_per_assembly, model_variables, obs_variables)
-            for i in range(num_particles)
-        ]
-    elif dig_or_analog == "analog":
-        particles = [
-            analog.Particle_Analog(neurons_per_assembly, model_variables, obs_variables)
+    
+    particles = [
+            master.Particle(neurons_per_assembly, latent_variables, obs_variables)
             for i in range(num_particles)
         ]
     # this is correct. format so initial model always takes no arguments, proposal only takes
@@ -244,15 +236,15 @@ def initialize_smcnn_particle_filter(
         key,
         initial_proposal,
         proposal_args,
-        proposal_variables,
         initial_model,
         model_args,
-        model_variables,
+        latent_variables,
         particles,
         "init",
     )
+    # make sure obs args are arranged in order in metadata
     obs_args = [
-        tuple([v["support"][p.choicemap[v["variable"]]] for v in model_variables])
+        tuple([v["support"][p.choicemap[v["variable"]]] for v in latent_variables])
         for p in particles
     ]
     # print(obs_args)
@@ -262,7 +254,7 @@ def initialize_smcnn_particle_filter(
         obs_model,
         obs_args,
         obs_variables,
-        model_variables,
+        latent_variables,
         particles,
     )
     particles = list(map(lambda p: p.score_particle(), particles))
@@ -305,10 +297,7 @@ def run_smcnn_particle_filter(
     model_variables, proposal_variables, obs_variables = variables
     particles_per_step = [particles]
     resampler_per_step = []
-    if dig_or_analog == "digital":
-        resampler = digital.Resampler(particles)
-    elif dig_or_analog == "analog":
-        resampler = analog.Resampler_Analog(particles)
+    resampler = master.Resampler(particles)
     resampler.norm_and_resample()
     resampler_per_step.append(resampler)
 
@@ -352,10 +341,7 @@ def run_smcnn_particle_filter(
         )
         particles = list(map(lambda p: p.score_particle(), particles))
         particles_per_step.append(particles)
-        if dig_or_analog == "digital":
-            resampler = digital.Resampler(particles)
-        elif dig_or_analog == "analog":
-            resampler = analog.Resampler_Analog(particles)
+        resampler = master.Resampler(particles)
         resampler.norm_and_resample()
         resampler_per_step.append(resampler)
 
