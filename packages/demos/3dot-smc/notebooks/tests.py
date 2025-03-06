@@ -1,17 +1,12 @@
-import genstudio.plot as Plot
 import genbrain_model_3dot as model
-import genbrain_smcnn_core.interpreter as smcnn
-import genbrain_utils_genjax as gjutils
+#import genbrain_smcnn_core.interpreter as smcnn
 import numpy as np
 import jax.numpy as jnp
 import jax
-import genjax
 from genjax import ChoiceMapBuilder as CMB
 from PIL import Image
 import re
 import os
-#console = genjax.pretty()
-# test smcnn get_categorical_probs
 
 def get_catprobs(trace, v):
     if isinstance(v, tuple):
