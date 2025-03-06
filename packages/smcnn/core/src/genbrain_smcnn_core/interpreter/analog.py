@@ -151,6 +151,29 @@ class Particle_Analog(Particle):
             v.state_buffer[str(state)].append(0.0)
 
 
+class ProbabilityMap(): 
+    def __init__(self, neurons_per_assembly, probability_array, support, distribution):
+        self.distribution = distribution
+        self.max_recursion_passes = 3
+        self.pp_length = 20
+        super().__init__(neurons_per_assembly, catprobs)
+        staterange = np.hstack((np.arange(self.num_states), np.arange(self.num_states)))
+        ps_qs = ["p"] * self.num_states + ["q"] * self.num_states
+        self.mux = {pq + str(s): [] for pq, s in zip(ps_qs, staterange)}
+        self.accum = {str(s): [] for s in np.arange(self.neurons_per_assembly)}
+        self.state_buffer = {str(s): [] for s in np.arange(self.num_states)}
+        self.component_dict["state_buffer"] = self.state_buffer
+        self.component_dict["accum"] = self.accum
+        self.component_dict["mux"] = self.mux
+
+        # update this at resample time (i.e. make state_buffer the resampled state for each particle
+        # in switch states.
+        #        self.kp = int(self.pp_length / 10)
+        self.kp = 40
+        self.kq = 10
+        self.population_λ = {"q": 0.3, "p": 0.3}
+
+
 class SampleScore_Analog(SampleScore_Base):
     def __init__(self, neurons_per_assembly, catprobs):
         self.num_pp_generated = {"p": 0, "q": 0}

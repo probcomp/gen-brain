@@ -93,3 +93,35 @@ assert(not (prop_probs_20_arg_no_constraint == prop_probs_xyz_ego_constrained).a
 
 
 # one issue here is that the interpreter cares about the order of the proposal. the order is different in the proposal switch combinator -- if it goes down the vis path, you go obs->latents. if it goes the other way, you go markov. i think this might be a problem. better to keep the model the way it is and fix the ordering issue in the interpreter (i.e. provide dep maps for both switch outcomes, which is not a huge deal). 
+
+
+# Test ability to read model metadata with new catprobs structure (i.e. you don't need to specify subtraced anymore -- only the tuple variables). 
+
+# i think you should add "how is this coming back? is it a distribution or a probability map". will no longer have to segregate between latents and observations. 
+
+# will be enjoyable to think about this over a beer tonight. write out exactly what you need to happen in each case. 
+
+# make a new ParallelBernoulli class. 
+
+model_variables = [
+    {"variable": "lights", "parents": [], "support": model.bool_support},
+    {"variable": "diam", "parents": [], "support": model.diams}, 
+    {"variable": "v3d", "parents": [], "support": model.xyz_vels},
+    {"variable": "xyz", "parents": ["v3d"], "support": model.xyz_point_cloud},
+    {"variable": ("ego_pos", "ego_matter"), "parents": ["xyz"], "support": model.egocentric_3d_map}
+    ]
+
+proposal_variables = [
+    {"variable": "ego_pos", "parents": [], "support": model.egocentric_3d_map},
+    {"variable": "xyz", "parents": ["ego_pos"],   "support": model.xyz_point_cloud},
+    {"variable": "v3d", "parents": ["xyz"], "support": model.xyz_vels},
+    {"variable": "diam", "parents": ["ego_pos"], "support": model.diams},
+    {"variable": "lights", "parents": [], "support": model.bool_support}]
+    
+obs_variables = [
+    {
+        "variable": "obs",
+        "parents": [],
+        "support": model.egocentric_2d_map
+    }
+]
