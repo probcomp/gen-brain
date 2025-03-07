@@ -1,5 +1,6 @@
 import genbrain_model_3dot as model
 #import genbrain_smcnn_core.interpreter as smcnn
+import genbrain_smcnn_core.interpreter.master as smcnn
 import numpy as np
 import jax.numpy as jnp
 import jax
@@ -85,6 +86,28 @@ prop_probs_20_arg_no_constraint = get_categorical_probs_test(
 # All patterns work. If you constrain ego_pos, you get the same probabilities at xyz regardless of argument. If you let the different arguments control the sampling with no constraint, probs at xyz end up different. assert that these logical statements are true to make a test. 
 assert((prop_probs_xyz == prop_probs_xyz_ego_constrained).all())
 assert(not (prop_probs_20_arg_no_constraint == prop_probs_xyz_ego_constrained).all())
+
+
+# Test classes from master interpreter 
+
+q_probs = jnp.array([.1, .2, .7])
+p_probs = jnp.array([.1, .2, .7])
+probmap_q = [jnp.array([.1, .9]), 
+jnp.array([.001, .999]), jnp.array([.2, .8])]
+probmap_p = [jnp.array([.9, .1]), 
+jnp.array([.2, .8]), jnp.array([.5, .5])]
+neurons_per_assembly = 10
+
+ss = smcnn.SampleScore(neurons_per_assembly, (q_probs,))
+ss.sample_proposal()
+ss.initialize_p_assemblies(p_probs)
+ss.run_scoring_circuitry()
+
+pm = smcnn.ProbabilityMap(neurons_per_assembly, probmap_q)
+pm.sample_proposal()
+pm.initialize_p_assemblies(probmap_p)
+pm.run_scoring_circuitry()
+print(pm.total_score)
 
 
 # test metadata formatting. "variable" is the variable name in the generative model. 

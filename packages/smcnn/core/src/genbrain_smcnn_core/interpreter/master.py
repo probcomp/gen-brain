@@ -172,19 +172,14 @@ class Particle():
         }
         self.likelihood_circuits = {}
         for v in observed_variables:
-            if len(v["subtraced"]) == 0:
-                self.likelihood_circuits[v["variable"]] = lambda probs: P_Unit(
-                    neurons_per_assembly, probs
-                )
-            else:
-                self.likelihood_circuits[v["variable"]] = (
-                    lambda probs: ProbabilityMap(probs)
+            self.likelihood_circuits[v["variable"]] = (
+                    lambda probs: ProbabilityMap(neurons_per_assembly, probs)
                 )
         self.variables = latent_variables + observed_variables
-        self.p_units = {
-            v["variable"]: lambda probs: P_Unit_Analog(neurons_per_assembly, probs)
-            for v in self.variables
-        }
+        # self.p_units = {
+        #     v["variable"]: lambda probs: P_Unit_Analog(neurons_per_assembly, probs)
+        #     for v in self.variables
+        # }
         self.score = 0
         self.variable_ids = [v["variable"] for v in self.variables]
         self.completed_variables = []
@@ -246,7 +241,7 @@ class SampleScore():
         self.kq = 20
         self.kp = 60
         # want to eventually have this set by a biological neuron. population lambda should be a norm setpoint.
-        self.population_λ = {"q": 0.1, "p": 0.1}
+        self.population_λ = {"q": 0.3, "p": 0.3}
         self.p_initialized = False
         q_assembly_indices = ["q" + str(i) for i in range(self.num_states)]
         catprobs_q = catprobs[0]
@@ -268,13 +263,7 @@ class SampleScore():
         self.score_start_time = 0
         self.score_complete_time = 0
         self.state = float("NaN")
-        self.component_dict = {
-            "mux": self.mux,
-            "tik": self.tik,
-            "accum": self.accum,
-            "wta": self.wta,
-            "assemblies": self.assemblies,
-        }
+        
         if len(catprobs) == 2:
             catprobs_p = catprobs[1]
             self.initialize_p_assemblies(catprobs_p)
@@ -286,16 +275,18 @@ class SampleScore():
         self.mux = {pq + str(s): [] for pq, s in zip(ps_qs, staterange)}
         self.accum = {str(s): [] for s in np.arange(self.neurons_per_assembly)}
         self.state_buffer = {str(s): [] for s in np.arange(self.num_states)}
-        self.component_dict["state_buffer"] = self.state_buffer
-        self.component_dict["accum"] = self.accum
-        self.component_dict["mux"] = self.mux
-
+        self.component_dict = {
+            "mux": self.mux,
+            "state_buffer": self.state_buffer,
+            "tik": self.tik,
+            "accum": self.accum,
+            "wta": self.wta,
+            "assemblies": self.assemblies,
+        }
+        
         # update this at resample time (i.e. make state_buffer the resampled state for each particle
         # in switch states.
         #        self.kp = int(self.pp_length / 10)
-        self.kp = 40
-        self.kq = 10
-        self.population_λ = {"q": 0.3, "p": 0.3}
 
     def update_sim_lambdas(self, p_or_q):
         lambdas = self.catprobs[int(p_or_q == "p")] * self.population_λ[p_or_q]
@@ -414,15 +405,6 @@ class SampleScore():
             )
             if self.num_pp_generated["p"] < self.max_recursion_passes:
                 return self.run_scoring_circuitry()
-        #            else:
-        #                raise Exception("MAX RECURSION P REACHED")
-
-        # both mux pass spikes from the winning assemblies.
-        # the accum in q spikes for every assembly. whats passing
-        # spikes out is the accum in Q and the mux in P.
-
-        # there is a case where you get NO spikes in this variable. what that means is that
-        # no spikes were generated in the distribution at all before max recursion.
 
         spikes_entering_p_tik = all_p_spikes[0 : self.kp + 1]
         if len(spikes_entering_p_tik) == 0:
@@ -463,13 +445,18 @@ class SampleScore():
         self.clip_assemblies_to_scoretime()
 
 class ProbabilityMap(): 
-    def __init__(self, neurons_per_assembly, probability_array, support, distribution):
-        self.distribution = distribution
+    def __init__(self, neurons_per_assembly, probability_array):
         self.probability_array = probability_array
-        self.support = support
-
-
-
+        self.neurons_per_assembly = neurons_per_assembly
+        self.samplescores = list(map(lambda probs: SampleScore(neurons_per_assembly, (probs,)), probability_array))
+        self.total_score = 0.0
+    def sample_proposal(self):
+        list(map(lambda ss: ss.sample_proposal(), self.samplescores))
+    def initialize_p_assemblies(self, p_probs_array):
+        list(map(lambda ss, p_probs: ss.initialize_p_assemblies(p_probs), self.samplescores, p_probs_array))
+    def run_scoring_circuitry(self):
+        list(map(lambda ss: ss.run_scoring_circuitry(), self.samplescores))
+        self.total_score = np.sum(list(map(lambda ss: ss.p + ss.one_over_q, self.samplescores)))
 
 def poisson_process(λ, length_sim, starttime):
     rate = λ * length_sim
