@@ -39,10 +39,8 @@ def get_variable_id(variable_dict, prop_model_obs):
             var = (pmo[1], variable_dict["variable"])
     return var
 
-
 def filter_variable(v, variables):
     return list(filter(lambda x: x["variable"] == v, variables))[0]
-
 
 def smcnn_particle_filter_step_variables(
     key,

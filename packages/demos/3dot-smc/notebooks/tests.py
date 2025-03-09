@@ -45,6 +45,7 @@ def collect_frames(directory="../data/", file_pattern="frame-*.png"):
 key = jax.random.PRNGKey(100)
 init_mod_imp = model.initial_model.importance
 init_prop_imp = model.initial_proposal.importance
+obs_mod_imp = model.obs_model.importance
 no_constraint = CMB.d({})
 args = ()
 xy_obs_frames = collect_frames()
@@ -87,6 +88,13 @@ prop_probs_20_arg_no_constraint = get_categorical_probs_test(
 assert((prop_probs_xyz == prop_probs_xyz_ego_constrained).all())
 assert(not (prop_probs_20_arg_no_constraint == prop_probs_xyz_ego_constrained).all())
 
+# Test constraint of observation model 
+
+obs_constraint = CMB.d({("obs", "pix") : vis_angle_observations[1]})
+obs_tr_constrained, w = obs_mod_imp(key, obs_constraint, tr_prop.get_retval())
+
+assert((obs_tr_constrained.get_choices()["obs", "pix"] == obs_constraint[("obs", "pix")]).all())
+
 
 # Test classes from master interpreter 
 
@@ -109,7 +117,7 @@ pm.initialize_p_assemblies(probmap_p)
 pm.run_scoring_circuitry()
 print(pm.total_score)
 
-
+# Next up test Particle. We'll need metadata to make one, and we'll test the new compressed version of the metadata. 
 # test metadata formatting. "variable" is the variable name in the generative model. 
 
 latent_variables = [
@@ -124,8 +132,16 @@ latent_variables = [
     
 obs_variables = [
     {
-        "variable": "obs",
+        "variable": ("obs", "pix"),
         "parents": [],
-        "support": model.bool_support
+        "support": model.bool_support,
+        "type" : "probmap"
     }
 ]
+
+particle = smcnn.Particle(neurons_per_assembly, latent_variables, obs_variables)
+
+#start a samplescore sampler
+particle.start_sampler("lights", (jnp.array([.1, .9]),), 0.0)
+#start a probabilitymap sampler
+particle.start_sampler(("ego_pos", "ego_matter"), mod_probs, 0.0)

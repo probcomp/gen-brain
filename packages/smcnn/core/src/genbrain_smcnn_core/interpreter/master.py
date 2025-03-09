@@ -157,9 +157,6 @@ class Resampler():
             p.resampled_choicemap = self.particles[w].choicemap
         self.particles = new_particles
 
-#        self.populate_state_buffer()
-
-
 class Particle():
     def __init__(self, neurons_per_assembly, latent_variables, observed_variables):
         self.latent_variables = latent_variables
@@ -168,7 +165,12 @@ class Particle():
             v["variable"]: lambda pq_probs: SampleScore(
                 neurons_per_assembly, pq_probs
             )
-            for v in latent_variables
+            for v in latent_variables if v["type"] == "distribution"
+        }
+        self.probabilitymaps = {
+            v["variable"]: lambda probmap: ProbabilityMap(
+                neurons_per_assembly, probmap)
+            for v in latent_variables if v["type"] == "probmap"
         }
         self.likelihood_circuits = {}
         for v in observed_variables:
@@ -197,10 +199,25 @@ class Particle():
             v.state_buffer[str(state)].append(0.0)
 
     def start_sampler(self, v, prbs, race_start_time):
-        self.samplescores[v] = self.samplescores[v](prbs)
-        self.samplescores[v].race_start_time = race_start_time
-        self.samplescores[v].sample_proposal()
-        self.choicemap[v] = self.samplescores[v].state
+        def sample_from_ss(ss, probabilities):
+            ss = ss(probabilities)
+            ss.race_start_time = race_start_time
+            ss.sample_proposal()
+            return ss
+        if v in self.samplescores.keys():
+            presampled_ss = self.samplescores[v]
+            sampled_ss = sample_from_ss(presampled_ss, prbs)
+            sampled_state = sampled_ss.state
+            self.samplescores[v] = sampled_ss
+        # why does this not work? maybe it does try it. 
+        elif v in self.probabilitymaps.keys():
+            sampled_state = []
+            for probabilities, presampled_ss in zip(prbs, self.probabilitymaps[v]):
+                sampled_ss = sample_from_ss(presampled_ss, (probabilities,))
+                sampled_state.append(sampled_ss.state)
+                self.probabilitymaps[v].samplescores = sampled_ss
+            sampled_state = jnp.array(sampled_state)
+        self.choicemap[v] = sampled_state
         return self.samplescores[v].sample_time
 
     def start_pq_scoring(self, v, prbs):
@@ -444,14 +461,19 @@ class SampleScore():
         self.score_complete_time = np.max([self.tik["q"][0], self.tik["p"][0]])
         self.clip_assemblies_to_scoretime()
 
+# have to decide here if we wait until all samples are taken before we start scoring each choice. synching at first pass should be fine. 
 class ProbabilityMap(): 
     def __init__(self, neurons_per_assembly, probability_array):
         self.probability_array = probability_array
         self.neurons_per_assembly = neurons_per_assembly
         self.samplescores = list(map(lambda probs: SampleScore(neurons_per_assembly, (probs,)), probability_array))
         self.total_score = 0.0
+        self.state = []
+        self.sample_time = 0.0
     def sample_proposal(self):
         list(map(lambda ss: ss.sample_proposal(), self.samplescores))
+        self.state = jnp.array(list(map(lambda ss: ss.state, self.samplescores)))
+        self.sample_time = jnp.max(jnp.array(list(map(lambda ss: ss.sample_time, self.samplescores))))
     def initialize_p_assemblies(self, p_probs_array):
         list(map(lambda ss, p_probs: ss.initialize_p_assemblies(p_probs), self.samplescores, p_probs_array))
     def run_scoring_circuitry(self):
