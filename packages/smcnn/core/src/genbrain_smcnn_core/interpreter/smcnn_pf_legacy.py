@@ -9,14 +9,35 @@ key = jax.random.PRNGKey(10000)
 key, subkey = jax.random.split(key, 2)
 
 # 3/6/25: replace these. 
-        #        self.accum["q"] = all_q_spikes[all_q_spikes < self.tik["q"][0]]
+
+def get_categorical_probs_obs(key, genfunc_sim, v, args):
+    trace = genfunc_sim(key, args)
+    if isinstance(v, tuple):
+        probs = trace.get_subtrace((v[0],)).inner.get_subtrace((v[1],)).args
+    else:
+        probs = trace.get_subtrace((v,)).args
+    return probs[0]
+
 def get_categorical_probs(key, genfunc_imp, v, args, constraints):
     trace, w = genfunc_imp(key, constraints, args)
     if isinstance(v, tuple):
-        probs, support = trace.get_subtrace(*v).get_args()
+        probs = (
+            trace.get_subtrace((v[0],))
+            .subtraces[trace.get_subtrace((v[0],)).args[0]]
+            .get_subtrace((v[1],))
+            .args
+        )
     else:
-        probs, support = trace.get_subtrace((v,)).args
-    return probs
+        probs = trace.get_subtrace((v,)).args
+    return probs[0]
+
+
+def get_variable_id(variable_dict, prop_model_obs):
+    var = variable_dict["variable"]
+    for pmo in variable_dict["subtraced"]:
+        if pmo[0] == prop_model_obs:
+            var = (pmo[1], variable_dict["variable"])
+    return var
 
 def filter_variable(v, variables):
     return list(filter(lambda x: x["variable"] == v, variables))[0]
@@ -249,13 +270,14 @@ def run_smcnn_particle_filter(
     assembly_size,
     num_particles,
     observations,
+    dig_or_analog,
 ):
     print("Jitting Generative Functions")
     initial_model = jax.jit(initial_model.importance)
     step_model = jax.jit(step_model.importance)
     initial_proposal = jax.jit(initial_proposal.importance)
     step_proposal = jax.jit(step_proposal.importance)
-    obs_model = jax.jit(obs_model.importance)
+    obs_model = jax.jit(obs_model.simulate)
 
     key = jax.random.PRNGKey(5000)
     print("Initializing SMCNN Particle Filter")
@@ -268,9 +290,10 @@ def run_smcnn_particle_filter(
         assembly_size,
         num_particles,
         observations[0],
+        dig_or_analog,
     )
     print("Initialized SMCNN Particle Filter")
-    latent_variables, obs_variables = variables
+    model_variables, proposal_variables, obs_variables = variables
     particles_per_step = [particles]
     resampler_per_step = []
     resampler = master.Resampler(particles)

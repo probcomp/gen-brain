@@ -9,20 +9,13 @@ from PIL import Image
 import re
 import os
 
-def get_catprobs(trace, v):
+def get_categorical_probs_test(key, genfunc_imp, v, args, constraints):
+    trace, w = genfunc_imp(key, constraints, args)
     if isinstance(v, tuple):
         probs, support = trace.get_subtrace(*v).get_args()
     else:
         probs, support = trace.get_subtrace((v,)).args
     return probs
-
-def get_categorical_probs_obs_test(key, genfunc_sim, v, args):
-    trace = genfunc_sim(key, args)
-    return get_catprobs(trace, v)
-    
-def get_categorical_probs_test(key, genfunc_imp, v, args, constraints):
-    trace, w = genfunc_imp(key, constraints, args)
-    return get_catprobs(trace, v)
 
 def collect_frames(directory="../data/", file_pattern="frame-*.png"):
     frame_regex = re.compile(r"frame-(\d+)\.png")
@@ -156,6 +149,9 @@ particle.set_score_time(("ego_pos", "ego_matter"), 3.0)
 particle.start_pq_scoring("lights", jnp.array([.1, .9]))
 particle.start_pq_scoring(("ego_pos", "ego_matter"), prop_probs)
 
-# last test is likelihood and full particle scoring. 
-particle.likelihood_circuits[("obs", "pix")].state = vis_angle_observations[1]
-particle.likelihood_circuits[("obs", "pix")].run_scoring_circuitry()
+args_to_obs = tr_prop.get_retval()
+obs_probs = get_categorical_probs_test(key, obs_mod_imp, ("obs", "pix"), args_to_obs, CMB.d({}))
+particle.score_likelihood((obs_probs,), vis_angle_observations[1])
+
+# last test is likelihood and full particle scoring. have to set the state of the likelihood circuits for constraining. need to initialize the likelihood circuits with a 
+
