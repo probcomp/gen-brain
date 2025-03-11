@@ -106,13 +106,13 @@ probmap_p = [jnp.array([.9, .1]),
 jnp.array([.2, .8]), jnp.array([.5, .5])]
 neurons_per_assembly = 10
 
-ss = smcnn.SampleScore(neurons_per_assembly, (q_probs,))
-ss.sample_proposal()
+ss = smcnn.SampleScore(neurons_per_assembly, (q_probs,), False)
+ss.sample_proposal(0.0)
 ss.initialize_p_assemblies(p_probs)
 ss.run_scoring_circuitry()
 
 pm = smcnn.ProbabilityMap(neurons_per_assembly, probmap_q)
-pm.sample_proposal()
+pm.sample_proposal(0.0)
 pm.initialize_p_assemblies(probmap_p)
 pm.run_scoring_circuitry()
 print(pm.total_score)
@@ -139,9 +139,23 @@ obs_variables = [
     }
 ]
 
+# could probably change up samplescores a bit to not be a function
+def apply(func, arg):
+    return func(arg)
 particle = smcnn.Particle(neurons_per_assembly, latent_variables, obs_variables)
 
 #start a samplescore sampler
 particle.start_sampler("lights", (jnp.array([.1, .9]),), 0.0)
 #start a probabilitymap sampler
 particle.start_sampler(("ego_pos", "ego_matter"), mod_probs, 0.0)
+
+#test score time method
+particle.set_score_time("lights", 3.0)
+particle.set_score_time(("ego_pos", "ego_matter"), 3.0)
+# pq_scoring. 
+particle.start_pq_scoring("lights", jnp.array([.1, .9]))
+particle.start_pq_scoring(("ego_pos", "ego_matter"), prop_probs)
+
+# last test is likelihood and full particle scoring. 
+particle.likelihood_circuits[("obs", "pix")].state = vis_angle_observations[1]
+particle.likelihood_circuits[("obs", "pix")].run_scoring_circuitry()

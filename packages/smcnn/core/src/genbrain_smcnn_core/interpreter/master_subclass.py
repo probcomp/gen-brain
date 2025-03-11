@@ -165,7 +165,7 @@ class Particle():
         self.observed_variables = observed_variables
         self.samplescores = {
             v["variable"]: lambda pq_probs: SampleScore(
-                neurons_per_assembly, pq_probs, False
+                neurons_per_assembly, pq_probs
             )
             for v in latent_variables if v["type"] == "distribution"
         }
@@ -176,13 +176,8 @@ class Particle():
         }
         self.likelihood_circuits = {}
         for v in observed_variables:
-            if v["type"] == "distribution":
-                self.likelihood_circuits[v["variable"]] = lambda probs: P_Scoring_Unit(
-                    neurons_per_assembly, probs, True
-                )
-            elif v["type"] == "probmap":
-                self.likelihood_circuits[v["variable"]] = (
-                    lambda probs: PixelBasedLikelihood(probs)
+            self.likelihood_circuits[v["variable"]] = (
+                    lambda probs: ProbabilityMap(neurons_per_assembly, probs)
                 )
         self.variables = latent_variables + observed_variables
         # self.p_units = {
@@ -259,116 +254,41 @@ class Particle():
         self.timestamp = np.max(ss.scoring_time for ss in self.samplescores.values())
 
 
-class P_Scoring_Unit():
-    def __init__(self, neurons_per_assembly, catprobs, initialize_p):
+
+
+
+class SampleScore():
+    def __init__(self, neurons_per_assembly, catprobs):
         self.neurons_per_assembly = neurons_per_assembly
         self.num_states = len(catprobs[0])
-        self.kp = 60
-        self.population_λ = {"p": 0.3}
-        self.p_initialized = False
-        self.tik = {"p": []}
-        self.p = 0
-        self.p_tik = 0
-        self.score_start_time = 0
-        self.score_complete_time = 0
-        self.state = float("NaN")
-        self.assemblies = {}
-        self.sim_lambdas = {}
-        catprobs_p = catprobs[0]
-        self.catprobs = {} 
-        if initialize_p:
-            self.initialize_p_assemblies(catprobs_p)
-        self.num_pp_generated = {"p": 0 } 
-        self.max_recursion_passes = 3
-        self.pp_length = 20
-        staterange = np.arange(self.num_states)
-        self.mux = {"p" + str(s): [] for s in staterange}
-        self.component_dict = {
-            "mux": self.mux,
-            "tik": self.tik,
-            "assemblies": self.assemblies,
-        }
-
-    def update_sim_lambdas(self, p_or_q):
-        lambdas = self.catprobs[p_or_q] * self.population_λ[p_or_q]
-        assembly_indices = [p_or_q + str(i) for i in range(self.num_states)]
-        sim_lambdas = zip(assembly_indices, lambdas)
-        self.sim_lambdas.update(dict(sim_lambdas))
-        return assembly_indices
-
-    def initialize_p_assemblies(self, catprobs_p):
-        self.catprobs["p"] = catprobs_p
-        p_assembly_indices = self.update_sim_lambdas("p")
-        self.assemblies.update(
-            {
-                i: [[] for n in range(self.neurons_per_assembly)]
-                for i in p_assembly_indices
-            }
-        )
-        self.populate_assemblies("p", self.pp_length, self.score_start_time)
-
-    def run_scoring_circuitry(self):
-        p_spikes_by_assembly = [
-            np.sort(np.concatenate(sts))
-            for k, sts in self.assemblies.items()
-            if k[0] == "p"
-        ]
-        # currently using 0 indexed pix values but have to make sure
-        # you keep track of the pixel support
-        state = self.state
-        winning_p_assembly_spikes = p_spikes_by_assembly[state]
-        all_p_spikes = np.sort(np.concatenate(p_spikes_by_assembly))
-        p_complete = len(all_p_spikes) >= self.kp
-        if not p_complete:
-            self.num_pp_generated["p"] += 1
-            self.populate_assemblies(
-                "p", self.pp_length, self.pp_length * self.num_pp_generated["p"]
-            )
-            if self.num_pp_generated["p"] < self.max_recursion_passes:
-                return self.run_scoring_circuitry()
-
-        if p_complete:
-            spikes_entering_p_tik = all_p_spikes[0 : self.kp + 1]
-            self.tik["p"] = [spikes_entering_p_tik[-1]]
-            self.score_complete_time = self.tik["p"][0]
-        else:
-            spikes_entering_p_tik = all_p_spikes
-            self.tik["p"] = []
-            self.score_complete_time = all_p_spikes[-1]
-
-        self.mux["p"] = winning_p_assembly_spikes[
-            winning_p_assembly_spikes <= spikes_entering_p_tik[-1]
-        ]
-        self.p = np.log(len(self.mux["p"]) / self.kp)
-        self.clip_assemblies_to_scoretime()
-        return self
-    
-class SampleScore(P_Scoring_Unit):
-    def __init__(self, neurons_per_assembly, catprobs, initialize_p):
-        super().__init__(neurons_per_assembly, catprobs, initialize_p)
+        # wtf for some reason this is always vy.
         self.kq = 20
+        self.kp = 60
         # want to eventually have this set by a biological neuron. population lambda should be a norm setpoint.
-        self.population_λ["q"] = self.population_λ["p"]
+        self.population_λ = {"q": 0.3, "p": 0.3}
         self.p_initialized = False
         q_assembly_indices = ["q" + str(i) for i in range(self.num_states)]
         catprobs_q = catprobs[0]
-        self.catprobs = {"q" : catprobs_q } 
+        self.catprobs = [catprobs_q, []]
         q_lambdas = catprobs_q * self.population_λ["q"]
         self.assemblies = {
             i: [[] for i in range(self.neurons_per_assembly)]
             for i in q_assembly_indices
         }
         self.sim_lambdas = dict(zip(q_assembly_indices, q_lambdas))
-        self.tik["q"] = []
+        self.tik = {"q": [], "p": []}
         self.wta = {str(i): [] for i in range(self.num_states)}
+        self.p = 0
         self.one_over_q = 0
+        self.p_tik = 0
         self.q_tik = 0
         self.race_start_time = 0
         self.sample_time = 0
         self.score_start_time = 0
         self.score_complete_time = 0
         self.state = float("NaN")
-        if initialize_p:
+        
+        if len(catprobs) == 2:
             catprobs_p = catprobs[1]
             self.initialize_p_assemblies(catprobs_p)
         self.num_pp_generated = {"p": 0, "q": 0}
@@ -455,7 +375,20 @@ class SampleScore(P_Scoring_Unit):
         self.state = winner
         return self.state
         # clip all assemblies after this, or repopulate all of them in another function.
-
+    def sample_from_prior(self):
+        p_assembly_spiketimes = [
+            np.sort(np.concatenate(self.assemblies["p" + str(i)]))
+            for i in range(self.num_states)
+        ]
+        first_spiketimes = [
+            st[0] if not len(st) == 0 else np.nan for st in p_assembly_spiketimes
+        ]
+        winner = np.nanargmin(first_spiketimes)
+        self.sample_time = first_spiketimes[winner]
+        self.wta[str(winner)] = [self.sample_time]
+        self.state = winner
+        return self.state
+        
     def run_scoring_circuitry(self):
         # we don't care which q it is. we just want the kth element of it.
         def populate_accumulator_spikes(k, cliptime):
@@ -555,7 +488,7 @@ class ProbabilityMap():
     def __init__(self, neurons_per_assembly, probability_array):
         self.probability_array = probability_array
         self.neurons_per_assembly = neurons_per_assembly
-        self.samplescores = list(map(lambda probs: SampleScore(neurons_per_assembly, (probs,), False), probability_array))
+        self.samplescores = list(map(lambda probs: SampleScore(neurons_per_assembly, (probs,)), probability_array))
         self.total_score = 0.0
         self.state = []
         self.sample_time = 0.0
@@ -570,29 +503,49 @@ class ProbabilityMap():
         list(map(lambda ss: ss.run_scoring_circuitry(), self.samplescores))
         self.total_score = np.sum(list(map(lambda ss: ss.p + ss.one_over_q, self.samplescores)))
 
-class PixelBasedLikelihood:
-    def __init__(self, probvecs):
-        self.assembly_size = 3
-        self.p_scoring_units = {
-            "pix" + str(i): P_Scoring_Unit(self.assembly_size, probs, True) 
-            for i, probs in enumerate(probvecs)
-        }
-        self.pixel_probs = []
-        self.p = jnp.nan
-    # traditional log addition of all scores. however, if even one score is inf,
-    # will put the whole render to 0 probability.
-    def run_scoring_circuitry(self, observation):
-        # switch to vmap
-        pixel_probs = []
-        for k, obs in zip(self.p_scoring_units.keys(), observation):
-            self.p_scoring_units[k].run_scoring_circuitry(obs)
-            pixel_probs.append(self.p_units[k].p)
-        self.pixel_probs = jnp.array(pixel_probs)
-        joint_score = jnp.sum(self.pixel_probs)
-        self.p = joint_score
-        if math.isnan(self.p):
-            print("NAN LIKELIHOOD")
+class P_Unit(SampleScore):
+     def __init__(self, neurons_per_assembly, catprobs):
+        super().__init__(
+            neurons_per_assembly, (np.ones(len(catprobs)) / len(catprobs), catprobs)
+        )
+     # only changes are you get rid of all the requirements of kq. 
+     # there is a cost of generating a lot of q poisson processes that never get used. can fix this to save a bit of time. 
+     def run_scoring_circuitry(self):
+        p_spikes_by_assembly = [
+            np.sort(np.concatenate(sts))
+            for k, sts in self.assemblies.items()
+            if k[0] == "p"
+        ]
+        # currently using 0 indexed pix values but have to make sure
+        # you keep track of the pixel support
+        state = self.state
+        winning_p_assembly_spikes = p_spikes_by_assembly[state]
+        all_p_spikes = np.sort(np.concatenate(p_spikes_by_assembly))
+        p_complete = len(all_p_spikes) >= self.kp
+        if not p_complete:
+            self.num_pp_generated["p"] += 1
+            self.populate_assemblies(
+                "p", self.pp_length, self.pp_length * self.num_pp_generated["p"]
+            )
+            if self.num_pp_generated["p"] < self.max_recursion_passes:
+                return self.run_scoring_circuitry()
+
+        if p_complete:
+            spikes_entering_p_tik = all_p_spikes[0 : self.kp + 1]
+            self.tik["p"] = [spikes_entering_p_tik[-1]]
+            self.score_complete_time = self.tik["p"][0]
+        else:
+            spikes_entering_p_tik = all_p_spikes
+            self.tik["p"] = []
+            self.score_complete_time = all_p_spikes[-1]
+
+        self.mux["p"] = winning_p_assembly_spikes[
+            winning_p_assembly_spikes <= spikes_entering_p_tik[-1]
+        ]
+        self.p = np.log(len(self.mux["p"]) / self.kp)
+        self.clip_assemblies_to_scoretime()
         return self
+
 
 def poisson_process(λ, length_sim, starttime):
     rate = λ * length_sim

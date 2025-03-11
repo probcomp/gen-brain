@@ -163,6 +163,7 @@ def smcnn_particle_filter_step_variables(
             particle.samplescores[
                 model_variable["variable"]
             ].score_start_time = score_start_time
+            particle.set_score_start_time(model_variable["variable"], score_start_time)
             particle.start_pq_scoring(model_variable["variable"], p_probs)
 
     subkeys = jax.random.split(subkeys[0], len(particles))
