@@ -1,5 +1,5 @@
 import genbrain_model_3dot as model
-from genbrain_smcnn_core.interpreter import initialize_smcnn_particle_filter
+from genbrain_smcnn_core.interpreter import initialize_smcnn_particle_filter, get_categorical_probs
 import genbrain_smcnn_core.interpreter.master as smcnn
 import numpy as np
 import jax.numpy as jnp
@@ -9,13 +9,6 @@ from PIL import Image
 import re
 import os
 
-def get_categorical_probs_test(key, genfunc_imp, v, args, constraints):
-    trace, w = genfunc_imp(key, constraints, args)
-    if isinstance(v, tuple):
-        probs, support = trace.get_subtrace(*v).get_args()
-    else:
-        probs, support = trace.get_subtrace((v,)).args
-    return probs
 
 def collect_frames(directory="../data/", file_pattern="frame-*.png"):
     frame_regex = re.compile(r"frame-(\d+)\.png")
@@ -48,11 +41,11 @@ tr_mod, w = init_mod_imp(key, no_constraint, args)
 tr_prop, w = init_prop_imp(key, no_constraint, (vis_angle_observations[1],))
 
 # get_categorical_probs now finds its way through vmap and switches to the bottom level variables. 
-mod_probs = get_categorical_probs_test(key, init_mod_imp, ("ego_pos", "ego_matter"), (), CMB.d({}))
-prop_probs = get_categorical_probs_test(key, init_prop_imp, ("dot", "ego_pos", "ego_matter"), (vis_angle_observations[1],), CMB.d({}))
+mod_probs = get_categorical_probs(key, init_mod_imp, ("ego_pos", "ego_matter"), (), CMB.d({}))
+prop_probs = get_categorical_probs(key, init_prop_imp, ("dot", "ego_pos", "ego_matter"), (vis_angle_observations[1],), CMB.d({}))
 
 #step 2. make sure constraints work. start by creating a probability of "xyz" conditioned only on vis_angle_observations[1] as the input arg. 
-prop_probs_xyz = get_categorical_probs_test(
+prop_probs_xyz = get_categorical_probs(
     key, init_prop_imp, ("dot", "xyz"), (vis_angle_observations[1],), CMB.d({}))
 
 # next make a constraint based on the same argument (index 1). this is an array of 0s and 1s that represent voxel occupancy in spherical space. for the argument vis_angle_observations[1], the ego constraint is occupancy at indices (Array([2192, 2205, 2621], dtype=int32),). This is the exact same as the value for the retval of tr_prop. 
@@ -69,11 +62,11 @@ assert((tr_prop.get_retval()[2] == tr_constr.get_retval()[2]).all())
 assert((ego_constraint.value == tr_constr.get_choices()["dot", "ego_pos", "ego_matter"].value).all())
 
 # now test that the probabilities of xyz with a different input argument but the exact same ego_pos constraint correspond to the correct xyz interpretation. if constraint isn't working, probabilities will be very similar. 
-prop_probs_xyz_ego_constrained = get_categorical_probs_test(
+prop_probs_xyz_ego_constrained = get_categorical_probs(
     key, init_prop_imp, ("dot", "xyz"), (vis_angle_observations[20],), 
     CMB.d({ ("dot", "ego_pos", "ego_matter") : ego_constraint}))
 
-prop_probs_20_arg_no_constraint = get_categorical_probs_test(
+prop_probs_20_arg_no_constraint = get_categorical_probs(
     key, init_prop_imp, ("dot", "xyz"), (vis_angle_observations[20],), 
     CMB.d({}))
 
@@ -109,7 +102,7 @@ print("scoring")
 ss.run_scoring_circuitry()
 
 print("testing probability maps")
-pm = smcnn.ProbabilityMap(neurons_per_assembly, probmap_q)
+pm = smcnn.ProbabilityMap(neurons_per_assembly, (probmap_q,))
 pm.sample_proposal(0.0)
 pm.initialize_p_assemblies(probmap_p)
 pm.run_scoring_circuitry()
@@ -147,7 +140,7 @@ particle = smcnn.Particle(neurons_per_assembly, latent_variables, obs_variables)
 print("starting samplers")
 particle.start_sampler("lights", (jnp.array([.1, .9]),), 0.0)
 #start a probabilitymap sampler
-particle.start_sampler(("ego_pos", "ego_matter"), mod_probs, 0.0)
+particle.start_sampler(("ego_pos", "ego_matter"), (mod_probs,), 0.0)
 
 #test score time method
 print("setting score times")
@@ -161,21 +154,28 @@ particle.start_pq_scoring(("ego_pos", "ego_matter"), prop_probs)
 #likelihood
 print("starting likelihood scoring")
 args_to_obs = tr_prop.get_retval()
-obs_probs = get_categorical_probs_test(key, obs_mod_imp, ("obs", "pix"), args_to_obs, CMB.d({}))
+obs_probs = get_categorical_probs(key, obs_mod_imp, ("obs", "pix"), args_to_obs, CMB.d({}))
 particle.score_likelihood((obs_probs,), vis_angle_observations[1])
 
 print("initializing particle filter")
-particles = initialize_smcnn_particle_filter(key, 
-                                             (latent_variables, obs_variables), model.initial_model, 
-                                             model.initial_proposal, model.obs_model, 10, 10, (vis_angle_observations[1],))
 
-#sfp_proposal = init_prop_imp
 sfp_proposal = jax.jit(init_prop_imp)
+sfp_model = jax.jit(init_mod_imp)
+sfp_obs = jax.jit(obs_mod_imp)
+# this shows you that the error stems from get_categorical_probs operating on  ("dot", "lights") with the correct argument structure. 
+particles = initialize_smcnn_particle_filter(key, 
+                                             (latent_variables, obs_variables), sfp_model, 
+                                             sfp_proposal, sfp_obs, 10, 10, (vis_angle_observations[1],))
+
+# replicated lambda error outside of the loop! 
+sfp_proposal = init_prop_imp
+
 def sample_full_proposal(key, particle, sampled_list, prop_args):
     empty_cm = CMB.d({})
     for lv in latent_variables:
+        print(lv)
         if lv["q_parents"] == []:
-            q_probs = get_categorical_probs_test(
+            q_probs = get_categorical_probs(
                 key,
                 sfp_proposal,
                 lv["q_id"],
@@ -192,7 +192,15 @@ def sample_full_proposal(key, particle, sampled_list, prop_args):
             )
             sampled_list.append(lv["q_id"])
 
-# sample_full_proposal(key, smcnn.Particle(neurons_per_assembly, latent_variables, obs_variables), [],
-#                      (vis_angle_observations[1],))
+input_particle = smcnn.Particle(
+                         neurons_per_assembly, 
+                         latent_variables, obs_variables) 
+                         
+sample_full_proposal(key, input_particle, 
+                     [], (vis_angle_observations[1],))
+get_categorical_probs(key, 
+                      sfp_proposal, ('dot','lights'), 
+                      (vis_angle_observations[1],), 
+                      CMB.d({}))
 
 

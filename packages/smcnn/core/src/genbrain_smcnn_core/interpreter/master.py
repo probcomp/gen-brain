@@ -295,14 +295,30 @@ class P_Scoring_Unit():
         sim_lambdas = zip(assembly_indices, lambdas)
         self.sim_lambdas.update(dict(sim_lambdas))
         return assembly_indices
-    
+
+
+# issue here is that sometimes lambdas are multi-dimensional. i have no idea why. this doesn't happen in any of the tests. only in the particle filter loop. 
     def populate_assemblies(self, ky, length_sim, starttime):
         for k, λ in self.sim_lambdas.items():
             if k[0] == ky:
                 for neuron in range(self.neurons_per_assembly):
-                    self.assemblies[k][neuron] = np.concatenate(
-                            (self.assemblies[k][neuron], 
-                            poisson_process(λ, length_sim, starttime)))
+                    assembly_extension = poisson_process(λ, length_sim, starttime)
+                    try:
+                        self.assemblies[k][neuron] = np.concatenate(
+                            (self.assemblies[k][neuron], assembly_extension
+                            ))
+                    except ValueError:
+                        print("concat error")
+                        print(self.assemblies[k][neuron])
+                        print('assembly extension')
+                        print(assembly_extension)
+                        print(assembly_extension.shape)
+                        print('length of sim')
+                        print(length_sim)
+                        print('start time')
+                        print(starttime)
+                        print('sim lambda')
+                        print(λ)
 
     def clip_assemblies_to_scoretime(self):
         for k in self.assemblies.keys():
@@ -526,9 +542,9 @@ class SampleScore(P_Scoring_Unit):
 # have to decide here if we wait until all samples are taken before we start scoring each choice. synching at first pass should be fine. 
 class ProbabilityMap(): 
     def __init__(self, neurons_per_assembly, probability_array):
-        self.probability_array = probability_array
+        self.probability_array = probability_array[0]
         self.neurons_per_assembly = neurons_per_assembly
-        self.samplescores = list(map(lambda probs: SampleScore(neurons_per_assembly, (probs,), False), probability_array))
+        self.samplescores = list(map(lambda probs: SampleScore(neurons_per_assembly, (probs,), False), self.probability_array))
         self.total_score = 0.0
         self.state = []
         self.sample_time = 0.0
@@ -575,7 +591,18 @@ class PixelBasedLikelihood:
             print("NAN LIKELIHOOD")
         return self
 
+
+def is_multidimensional(obj):
+    if isinstance(obj, (int, float)):  
+        return False
+    try:
+        return np.ndim(obj) == 1  
+    except TypeError:
+        return False  
+
 def poisson_process(λ, length_sim, starttime):
+    if is_multidimensional(λ):
+        raise Exception("got non-scalar pp lambda")
     rate = λ * length_sim
     spikenum = np.random.poisson(rate)
     spiketimes = starttime + np.sort(length_sim * np.random.uniform(0, 1, spikenum))
