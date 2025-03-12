@@ -186,10 +186,6 @@ class Particle():
                     lambda probs: PixelBasedLikelihood(probs)
                 )
         self.variables = latent_variables + observed_variables
-        # self.p_units = {
-        #     v["variable"]: lambda probs: P_Unit_Analog(neurons_per_assembly, probs)
-        #     for v in self.variables
-        # }
         self.score = 0
         self.variable_ids = [v["variable"] for v in self.variables]
         self.completed_variables = []
@@ -305,11 +301,8 @@ class P_Scoring_Unit():
             if k[0] == ky:
                 for neuron in range(self.neurons_per_assembly):
                     self.assemblies[k][neuron] = np.concatenate(
-                        (
-                            self.assemblies[k][neuron],
-                            poisson_process(λ, length_sim, starttime),
-                        )
-                    )
+                            (self.assemblies[k][neuron], 
+                            poisson_process(λ, length_sim, starttime)))
 
     def clip_assemblies_to_scoretime(self):
         for k in self.assemblies.keys():

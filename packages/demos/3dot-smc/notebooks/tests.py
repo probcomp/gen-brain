@@ -1,5 +1,5 @@
 import genbrain_model_3dot as model
-#import genbrain_smcnn_core.interpreter as smcnn
+from genbrain_smcnn_core.interpreter import initialize_smcnn_particle_filter
 import genbrain_smcnn_core.interpreter.master as smcnn
 import numpy as np
 import jax.numpy as jnp
@@ -99,11 +99,16 @@ probmap_p = [jnp.array([.9, .1]),
 jnp.array([.2, .8]), jnp.array([.5, .5])]
 neurons_per_assembly = 10
 
+print("testing samplescores")
 ss = smcnn.SampleScore(neurons_per_assembly, (q_probs,), False)
+print("starting proposal")
 ss.sample_proposal(0.0)
+print("initializing p assemblies")
 ss.initialize_p_assemblies(p_probs)
+print("scoring")
 ss.run_scoring_circuitry()
 
+print("testing probability maps")
 pm = smcnn.ProbabilityMap(neurons_per_assembly, probmap_q)
 pm.sample_proposal(0.0)
 pm.initialize_p_assemblies(probmap_p)
@@ -119,7 +124,7 @@ latent_variables = [
     {"variable": "diam", "q_id": ("dot", "diam"),  
      "p_parents": [], "q_parents": [], "support": model.diams, "type": "distribution"},
     {"variable": "v3d", "q_id": ("dot", "v3d"), "q_parents": [], "p_parents": [], "support": model.xyz_vels, "type": "distribution"}, 
-    {"variable": "xyz", "q_parents": ["ego_pos"], "p_parents": [],  "support": model.xyz_point_cloud, "type": "distribution"},
+    {"variable": "xyz", "q_id": ("dot", "xyz"), "q_parents": ["ego_pos"], "p_parents": [],  "support": model.xyz_point_cloud, "type": "distribution"},
     {"variable": ("ego_pos", "ego_matter"), "q_id": ("dot", "ego_pos", "ego_matter"), "q_parents": [], "p_parents": ["xyz"], "support": model.egocentric_3d_map, "type": "probmap"}
     ]
     
@@ -135,23 +140,59 @@ obs_variables = [
 # could probably change up samplescores a bit to not be a function
 def apply(func, arg):
     return func(arg)
+print("initializing particle")
 particle = smcnn.Particle(neurons_per_assembly, latent_variables, obs_variables)
 
 #start a samplescore sampler
+print("starting samplers")
 particle.start_sampler("lights", (jnp.array([.1, .9]),), 0.0)
 #start a probabilitymap sampler
 particle.start_sampler(("ego_pos", "ego_matter"), mod_probs, 0.0)
 
 #test score time method
+print("setting score times")
 particle.set_score_time("lights", 3.0)
 particle.set_score_time(("ego_pos", "ego_matter"), 3.0)
 # pq_scoring. 
+print("starting pq scoring")
 particle.start_pq_scoring("lights", jnp.array([.1, .9]))
 particle.start_pq_scoring(("ego_pos", "ego_matter"), prop_probs)
 
+#likelihood
+print("starting likelihood scoring")
 args_to_obs = tr_prop.get_retval()
 obs_probs = get_categorical_probs_test(key, obs_mod_imp, ("obs", "pix"), args_to_obs, CMB.d({}))
 particle.score_likelihood((obs_probs,), vis_angle_observations[1])
 
-# last test is likelihood and full particle scoring. have to set the state of the likelihood circuits for constraining. need to initialize the likelihood circuits with a 
+print("initializing particle filter")
+particles = initialize_smcnn_particle_filter(key, 
+                                             (latent_variables, obs_variables), model.initial_model, 
+                                             model.initial_proposal, model.obs_model, 10, 10, (vis_angle_observations[1],))
+
+#sfp_proposal = init_prop_imp
+sfp_proposal = jax.jit(init_prop_imp)
+def sample_full_proposal(key, particle, sampled_list, prop_args):
+    empty_cm = CMB.d({})
+    for lv in latent_variables:
+        if lv["q_parents"] == []:
+            q_probs = get_categorical_probs_test(
+                key,
+                sfp_proposal,
+                lv["q_id"],
+                prop_args,
+                empty_cm,
+            )
+            if not np.isfinite(q_probs).all():
+                print("Nan prb in proposal layer 1")
+                print(prop_args)
+                print(lv["variable"])
+            race_start_time = 0
+            particle.start_sampler(
+                lv["variable"], (q_probs,), race_start_time
+            )
+            sampled_list.append(lv["q_id"])
+
+# sample_full_proposal(key, smcnn.Particle(neurons_per_assembly, latent_variables, obs_variables), [],
+#                      (vis_angle_observations[1],))
+
 

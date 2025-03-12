@@ -22,7 +22,7 @@ def labcat_generator_nonvec():
         w = jnp.log(jnp.sum(probs * (labels == v)))
         return w
 
-    return exact_density(sampler, logpdf)
+    return exact_density(sampler, logpdf, "labeled_categorical_nonvec")
 
 
 # This new implementation allows for arbitrarily structured labels, meaning
@@ -41,7 +41,7 @@ def labcat_generator():
         w = jnp.log(jnp.sum(probs * jnp.all(vecval == veclabels, axis=2).flatten()))
         return w
 
-    return exact_density(sampler, logpdf)
+    return exact_density(sampler, logpdf, "labeled_categorical")
 
 
 labeled_categorical = labcat_generator()
