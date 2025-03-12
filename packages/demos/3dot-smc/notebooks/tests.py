@@ -117,7 +117,7 @@ latent_variables = [
     {"variable": "diam", "q_id": ("dot", "diam"),  
      "p_parents": [], "q_parents": [], "support": model.diams, "type": "distribution"},
     {"variable": "v3d", "q_id": ("dot", "v3d"), "q_parents": [], "p_parents": [], "support": model.xyz_vels, "type": "distribution"}, 
-    {"variable": "xyz", "q_id": ("dot", "xyz"), "q_parents": ["ego_pos"], "p_parents": [],  "support": model.xyz_point_cloud, "type": "distribution"},
+    {"variable": "xyz", "q_id": ("dot", "xyz"), "q_parents": [("ego_pos", "ego_matter")], "p_parents": [],  "support": model.xyz_point_cloud, "type": "distribution"},
     {"variable": ("ego_pos", "ego_matter"), "q_id": ("dot", "ego_pos", "ego_matter"), "q_parents": [], "p_parents": ["xyz"], "support": model.egocentric_3d_map, "type": "probmap"}
     ]
     
@@ -173,14 +173,14 @@ sfp_proposal = init_prop_imp
 def sample_full_proposal(key, particle, sampled_list, prop_args):
     empty_cm = CMB.d({})
     for lv in latent_variables:
-        print(lv)
         if lv["q_parents"] == []:
+            print(lv)
             q_probs = get_categorical_probs(
                 key,
                 sfp_proposal,
                 lv["q_id"],
                 prop_args,
-                empty_cm,
+                empty_cm
             )
             if not np.isfinite(q_probs).all():
                 print("Nan prb in proposal layer 1")

@@ -46,15 +46,17 @@ def smcnn_particle_filter_step_variables(
         if set([v["variable"] for v in latent_variables]) == set(sampled_list):
             return particle
         if sampled_list == []:
+            print("in empty sampled_list loop")
             empty_cm = CMB.d({})
             for lv in latent_variables:
+                print(lv)
                 if lv["q_parents"] == []:
                     q_probs = get_categorical_probs(
                         key,
                         proposal,
                         lv["q_id"],
                         prop_args,
-                        empty_cm,
+                        empty_cm
                     )
                     if not np.isfinite(q_probs).all():
                         print("Nan prb in proposal layer 1")
@@ -67,18 +69,22 @@ def smcnn_particle_filter_step_variables(
                     sampled_list.append(lv["variable"])
         else:
             for lv in latent_variables:
+                print("in non empty sampled list loop")
+                
                 # asks if all of lvs parents have been sampled and lv itself has not been sampled. 
                 if (set(lv["q_parents"]) <= set(sampled_list)) and (
-                    lv["variable"] not in particle.choicemap.keys()
+                    lv["variable"] not in sampled_list
                 ):
+                    print(lv)
                     # you're just making a choicemap here of the parents. 
+                    print(lv["variable"])
                     parent_states = CMB.d(
                         { parent_id : get_variable_state(parent_id, "variable", particle.choicemap[parent_id], latent_variables)
                             for parent_id in lv["q_parents"]
                         }
                     )
                     parent_sample_times = [
-                        particle.samplescores[v].sample_time for v in lv["q_parents"]
+                        particle.samplescores[v].sample_time  if v in particle.samplescores.keys() else particle.probabilitymaps[v].sample_time for v in lv["q_parents"]
                     ]
                     q_probs = get_categorical_probs(
                         key,
