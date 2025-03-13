@@ -116,11 +116,13 @@ def smcnn_particle_filter_step_variables(
                 }
             )
             parents_sample_times = [
-                particle.samplescores[v].sample_time for v in lv["parents"]
+                particle.samplescores[v].sample_time for v in lv["p_parents"]
             ]
-            self_sample_time = particle.samplescores[
-                lv["variable"]
-            ].sample_time
+            if lv["type"] == "distribution":
+                self_sample_time = particle.samplescores[
+                    lv["variable"]].sample_time
+            elif lv["type"]: 
+                self_sample_time = particle.probabilitymaps[lv["variable"]].sample_time
             score_start_time = np.max(parents_sample_times + [self_sample_time])
             p_probs = get_categorical_probs(
                 key,
@@ -136,13 +138,10 @@ def smcnn_particle_filter_step_variables(
                 print(lv["variable"])
                 print(p_probs)
                 print(mod_args)
-                print(lv["parents"])
-                print([parent_states[v] for v in lv["parents"]])
+                print(lv["p_parents"])
+                print([parent_states[v] for v in lv["p_parents"]])
 
-            particle.samplescores[
-                lv["variable"]
-            ].score_start_time = score_start_time
-            particle.set_score_start_time(lv["variable"], score_start_time)
+            particle.set_score_time(lv["variable"], score_start_time)
             particle.start_pq_scoring(lv["variable"], p_probs)
 
     subkeys = jax.random.split(subkeys[0], len(particles))
@@ -167,7 +166,8 @@ def smcnn_particle_filter_score_obs(key, obs_model, obs_args, obs_variables, par
         subkey = jax.random.split(key, len(particles))
         for obs_arg, particle in zip(obs_args, particles):
             key, subkey = jax.random.split(key, 2)
-            probs = get_categorical_probs(subkey, obs_model, obs_variable["variable"], obs_args)
+            # it must be the form of the observation. here it is the direct retval of the proposal. 
+            probs = get_categorical_probs(subkey, obs_model, obs_variable["variable"], obs_args, CMB.d({}))
             particle.score_likelihood((probs,), observation)
     return particles
 
@@ -208,15 +208,18 @@ def initialize_smcnn_particle_filter(
         tuple([v["support"][p.choicemap[v["variable"]]] for v in latent_variables])
         for p in particles
     ]
-    # print(obs_args)
+    # this isn't quite right because for a probabilitymap, the argument isn't correct. what its doing here is indexing the egocentric map at 0 or 1, when its really asking whether each index is occupied. 
+    print("obs arguments")
+    print(obs_args)
+    print("particle 0 choicemap")
+    print(particles[0].choicemap)
     particles = smcnn_particle_filter_score_obs(
         subkey,
-        first_observation,
         obs_model,
         obs_args,
         obs_variables,
-        latent_variables,
         particles,
+        first_observation
     )
     particles = list(map(lambda p: p.score_particle(), particles))
     return particles
@@ -268,7 +271,7 @@ def run_smcnn_particle_filter(
             tuple(
                 [
                     v["support"][p.resampled_choicemap[v["variable"]]]
-                    for v in model_variables
+                    for v in latent_variables
                 ]
             )
             for p in particles
@@ -278,10 +281,9 @@ def run_smcnn_particle_filter(
             key,
             step_proposal,
             proposal_args,
-            proposal_variables,
             step_model,
             model_args,
-            model_variables,
+            latent_variables,
             particles,
             "step",
         )
@@ -291,12 +293,11 @@ def run_smcnn_particle_filter(
         ]
         particles = smcnn_particle_filter_score_obs(
             subkey,
-            observation,
             obs_model,
             obs_args,
             obs_variables,
-            model_variables,
             particles,
+            observation
         )
         particles = list(map(lambda p: p.score_particle(), particles))
         particles_per_step.append(particles)

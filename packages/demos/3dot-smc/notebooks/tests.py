@@ -109,16 +109,15 @@ pm.run_scoring_circuitry()
 print(pm.total_score)
 
 # Next up test Particle. We'll need metadata to make one, and we'll test the new compressed version of the metadata. 
-# test metadata formatting. "variable" is the variable name in the generative model. 
-
+# test metadata formatting. "variable" is the variable name in the generative model. only requirement of latent_variables is that ALL latent variable values are the return from the proposal and model, and they are in order in the metadata accordint to their order in the return value. 
 latent_variables = [
+    {"variable": "v3d", "q_id": ("dot", "v3d"), "q_parents": [], "p_parents": [], "support": model.xyz_vels, "type": "distribution"}, 
+    {"variable": "xyz", "q_id": ("dot", "xyz"), "q_parents": [("ego_pos", "ego_matter")], "p_parents": [],  "support": model.xyz_point_cloud, "type": "distribution"},
+    {"variable": ("ego_pos", "ego_matter"), "q_id": ("dot", "ego_pos", "ego_matter"), "q_parents": [], "p_parents": ["xyz"], "support": model.egocentric_3d_map, "type": "probmap"},
     {"variable": "lights", "q_id": ("dot", "lights"), 
      "p_parents": [], "q_parents": [], "support": model.bool_support, "type": "distribution"}, 
     {"variable": "diam", "q_id": ("dot", "diam"),  
-     "p_parents": [], "q_parents": [], "support": model.diams, "type": "distribution"},
-    {"variable": "v3d", "q_id": ("dot", "v3d"), "q_parents": [], "p_parents": [], "support": model.xyz_vels, "type": "distribution"}, 
-    {"variable": "xyz", "q_id": ("dot", "xyz"), "q_parents": [("ego_pos", "ego_matter")], "p_parents": [],  "support": model.xyz_point_cloud, "type": "distribution"},
-    {"variable": ("ego_pos", "ego_matter"), "q_id": ("dot", "ego_pos", "ego_matter"), "q_parents": [], "p_parents": ["xyz"], "support": model.egocentric_3d_map, "type": "probmap"}
+     "p_parents": [], "q_parents": [], "support": model.diams, "type": "distribution"}
     ]
     
 obs_variables = [
@@ -165,7 +164,7 @@ sfp_obs = jax.jit(obs_mod_imp)
 # this shows you that the error stems from get_categorical_probs operating on  ("dot", "lights") with the correct argument structure. 
 particles = initialize_smcnn_particle_filter(key, 
                                              (latent_variables, obs_variables), sfp_model, 
-                                             sfp_proposal, sfp_obs, 10, 10, (vis_angle_observations[1],))
+                                             sfp_proposal, sfp_obs, 2, 1, (vis_angle_observations[1],))
 
 # replicated lambda error outside of the loop! 
 sfp_proposal = init_prop_imp
