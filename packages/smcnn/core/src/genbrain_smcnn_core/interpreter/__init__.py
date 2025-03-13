@@ -26,10 +26,15 @@ def get_categorical_probs(key, genfunc_imp, v, args, constraints):
 def filter_variable(v, variables):
     return list(filter(lambda x: x["variable"] == v, variables))[0]
 
-def get_variable_state(v, label, index, latent_variables):
+
+def get_variable_state(v, label, state, latent_variables):
     for lv in latent_variables:
         if lv[label] == v:
-            return lv["support"][index]
+            if lv["type"] == "distribution":
+                return lv["support"][state]
+            elif lv["type"] == "probmap":
+                return jnp.array([lv["support"][i] for i in state])
+        
 
 def smcnn_particle_filter_step_variables(
     key,
@@ -76,7 +81,7 @@ def smcnn_particle_filter_step_variables(
                     lv["variable"] not in sampled_list
                 ):
                     print(lv)
-                    # you're just making a choicemap here of the parents. 
+                    # you're just making a choicemap here of the parents. you are cycling through latent variables until you find the "variable" that matches the ID of the parent. when you find it, return its state from the choicemap. but the choicemap is a bunch of indices. you have to index the support of the parent variable. this has to be different for distributions and probabilitymaps, where choices in pmaps are a series of indices, which index a single support. 
                     print(lv["variable"])
                     parent_states = CMB.d(
                         { parent_id : get_variable_state(parent_id, "variable", particle.choicemap[parent_id], latent_variables)
@@ -166,8 +171,9 @@ def smcnn_particle_filter_score_obs(key, obs_model, obs_args, obs_variables, par
         subkey = jax.random.split(key, len(particles))
         for obs_arg, particle in zip(obs_args, particles):
             key, subkey = jax.random.split(key, 2)
-            # it must be the form of the observation. here it is the direct retval of the proposal. 
-            probs = get_categorical_probs(subkey, obs_model, obs_variable["variable"], obs_args, CMB.d({}))
+            # this is receiving obs_args as all of the choices in particle choicemap that are indexed by their sample and their support. for a probability map, this will not work because its support is the broader 
+            probs = get_categorical_probs(
+                subkey, obs_model, obs_variable["variable"], obs_args, CMB.d({}))
             particle.score_likelihood((probs,), observation)
     return particles
 
@@ -203,9 +209,9 @@ def initialize_smcnn_particle_filter(
         particles,
         "init",
     )
-    # make sure obs args are arranged in order in metadata
-    obs_args = [
-        tuple([v["support"][p.choicemap[v["variable"]]] for v in latent_variables])
+    # make sure obs args are arranged in order in metadata.  
+
+    obs_args = [tuple([get_variable_state(v, p.choicemap[v["variable"]], latent_variables) for v in latent_variables])
         for p in particles
     ]
     # this isn't quite right because for a probabilitymap, the argument isn't correct. what its doing here is indexing the egocentric map at 0 or 1, when its really asking whether each index is occupied. 
@@ -270,7 +276,8 @@ def run_smcnn_particle_filter(
         model_args = [
             tuple(
                 [
-                    v["support"][p.resampled_choicemap[v["variable"]]]
+                    get_variable_state(v, p.choicemap[v["variable"]], 
+                                       
                     for v in latent_variables
                 ]
             )

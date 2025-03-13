@@ -109,11 +109,11 @@ pm.run_scoring_circuitry()
 print(pm.total_score)
 
 # Next up test Particle. We'll need metadata to make one, and we'll test the new compressed version of the metadata. 
-# test metadata formatting. "variable" is the variable name in the generative model. only requirement of latent_variables is that ALL latent variable values are the return from the proposal and model, and they are in order in the metadata accordint to their order in the return value. 
+# test metadata formatting. "variable" is the variable name in the generative model. only requirement of latent_variables is that ALL latent variable values are the return from the proposal and model, and they are in order in the metadata accordint to their order in the return value. you want to add in the support of the last variable in any tuple description for support. Probmap will handle categorical indexing. 
 latent_variables = [
     {"variable": "v3d", "q_id": ("dot", "v3d"), "q_parents": [], "p_parents": [], "support": model.xyz_vels, "type": "distribution"}, 
     {"variable": "xyz", "q_id": ("dot", "xyz"), "q_parents": [("ego_pos", "ego_matter")], "p_parents": [],  "support": model.xyz_point_cloud, "type": "distribution"},
-    {"variable": ("ego_pos", "ego_matter"), "q_id": ("dot", "ego_pos", "ego_matter"), "q_parents": [], "p_parents": ["xyz"], "support": model.egocentric_3d_map, "type": "probmap"},
+    {"variable": ("ego_pos", "ego_matter"), "q_id": ("dot", "ego_pos", "ego_matter"), "q_parents": [], "p_parents": ["xyz"], "support": model.bool_support, "type": "probmap"},
     {"variable": "lights", "q_id": ("dot", "lights"), 
      "p_parents": [], "q_parents": [], "support": model.bool_support, "type": "distribution"}, 
     {"variable": "diam", "q_id": ("dot", "diam"),  
