@@ -581,6 +581,13 @@ class PixelBasedLikelihood:
         # switch to vmap
         pixel_probs = []
         for k, obs in zip(self.p_scoring_units.keys(), self.state):
+
+            # here obs should be a single value, 0 or 1. the observation is a list of 0s and 1s. it should be parsed here. 
+            print("scoring pixels")
+            print(obs)
+            print(obs.shape)
+            print(self.state)
+            print(self.state.shape)
             self.p_scoring_units[k].constrain_state(obs)
             self.p_scoring_units[k].run_scoring_circuitry()
             pixel_probs.append(self.p_scoring_units[k].p)
