@@ -24,8 +24,7 @@ class Resampler():
         self.winners = []
         self.log_weights = 0
         self.log_total_weight = 0
-        self.ml_setpoint = 1
-        self.ess_threshold = jnp.inf
+        #self.ess_threshold = jnp.inf
         self.resampled_on_step = True
         self.normalizer_λ = 0.5
         self.resampler_probs = []
@@ -63,7 +62,8 @@ class Resampler():
         last_spike = 0
         for p in self.particles:
             for ss in p.samplescores.values():
-                candidate_last_spike = ss.score_complete_time
+                breakpoint()
+                candidate_last_spike = np.max(list(ss.score_complete_time.values()))
                 if candidate_last_spike > last_spike:
                     last_spike = candidate_last_spike
         self.resampler_start_time = last_spike
@@ -397,7 +397,6 @@ class SampleScore(P_Scoring_Unit):
         self.q_tik = 0
         self.race_start_time = 0
         self.sample_time = 0
-        self.score_complete_time_q = 0
         self.state = float("NaN")
         if initialize_p:
             catprobs_p = catprobs[1]
@@ -530,7 +529,7 @@ class SampleScore(P_Scoring_Unit):
         self.mux["q" + str(self.state)] = winning_q_assembly_spikes[0 : self.kq + 1]
         if q_complete:
             self.tik["q"] = [self.mux["q" + str(self.state)][-1]]
-            self.score_complete_time["q"] = self.tik["q"]
+            self.score_complete_time["q"] = self.tik["q"][0]
         else:
             print("q not complete after max recursion")
             self.score_complete_time["q"] = all_q_spikes[-1]

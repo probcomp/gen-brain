@@ -262,7 +262,7 @@ def run_smcnn_particle_filter(
         obs_model,
         assembly_size,
         num_particles,
-        observations[0],
+        (observations[0],)
     )
     print("Initialized SMCNN Particle Filter")
     latent_variables, obs_variables = variables
@@ -271,6 +271,7 @@ def run_smcnn_particle_filter(
     resampler = master.Resampler(particles)
     resampler.norm_and_resample()
     resampler_per_step.append(resampler)
+    # RESAMPLER HERE IS TOTALLY NEW AND EMPTY 
 
     for step, observation in enumerate(observations[1:]):
         print("step", step)
@@ -279,12 +280,16 @@ def run_smcnn_particle_filter(
         model_args = [
             tuple(
                 [
-                    get_variable_state(v["variable"], p.choicemap[v["variable"]], latent_variables) for v in latent_variables
+                    get_variable_state(v["variable"], p.resampled_choicemap[v["variable"]], latent_variables) for v in latent_variables
                 ]
             )
             for p in particles
         ]
         proposal_args = [m_args + tuple([*observation]) for m_args in model_args]
+        print("model args")
+        print(model_args)
+        print("prop args")
+        print(proposal_args)
         particles = smcnn_particle_filter_step_variables(
             key,
             step_proposal,
