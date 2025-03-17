@@ -166,15 +166,22 @@ print("initializing particle filter")
 #                                              (latent_variables, obs_variables), sfp_model, 
 #                                              sfp_proposal, sfp_obs, 2, 1, (vis_angle_observations[1],))
 
-res = run_smcnn_particle_filter((latent_variables, obs_variables), 
-                                    model.initial_model,
-                                    model.step_model, 
+results = run_smcnn_particle_filter((latent_variables, obs_variables), 
+                                    model.initial_model, model.step_model, 
                                     model.initial_proposal, 
                                     model.step_proposal, 
                                     model.obs_model, 
                                     5, 
-                                    1, 
-                                    vis_angle_observations[1:5])
+                                    2, 
+                                    vis_angle_observations)
+
+def get_xyz(results):
+    particles_per_step = results[1]
+    xyz_vals = []
+    for particles in particles_per_step:
+        xyz_vals.append([model.xyz_point_cloud[p.choicemap["xyz"]] for p in particles])
+    return xyz_vals
+
 
 
 

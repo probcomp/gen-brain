@@ -51,7 +51,6 @@ def smcnn_particle_filter_step_variables(
         if set([v["variable"] for v in latent_variables]) == set(sampled_list):
             return particle
         if sampled_list == []:
-            print("in empty sampled_list loop")
             empty_cm = CMB.d({})
             for lv in latent_variables:
                 print(lv)
@@ -80,9 +79,7 @@ def smcnn_particle_filter_step_variables(
                 if (set(lv["q_parents"]) <= set(sampled_list)) and (
                     lv["variable"] not in sampled_list
                 ):
-                    print(lv)
                     # you're just making a choicemap here of the parents. you are cycling through latent variables until you find the "variable" that matches the ID of the parent. when you find it, return its state from the choicemap. but the choicemap is a bunch of indices. you have to index the support of the parent variable. this has to be different for distributions and probabilitymaps, where choices in pmaps are a series of indices, which index a single support. 
-                    print(lv["variable"])
                     parent_states = CMB.d(
                         { parent_id : get_variable_state(parent_id, particle.choicemap[parent_id], latent_variables)
                             for parent_id in lv["q_parents"]
@@ -271,8 +268,7 @@ def run_smcnn_particle_filter(
     resampler = master.Resampler(particles)
     resampler.norm_and_resample()
     resampler_per_step.append(resampler)
-    # RESAMPLER HERE IS TOTALLY NEW AND EMPTY 
-
+    
     for step, observation in enumerate(observations[1:]):
         print("step", step)
         particles = resampler.particles
@@ -285,11 +281,7 @@ def run_smcnn_particle_filter(
             )
             for p in particles
         ]
-        proposal_args = [m_args + tuple([*observation]) for m_args in model_args]
-        print("model args")
-        print(model_args)
-        print("prop args")
-        print(proposal_args)
+        proposal_args = [m_args + (observation,) for m_args in model_args]
         particles = smcnn_particle_filter_step_variables(
             key,
             step_proposal,
