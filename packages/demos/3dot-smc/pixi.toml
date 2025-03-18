@@ -13,6 +13,7 @@ genbrain_smcnn_core = { path = "../../smcnn/core" }
 genbrain_utils_genjax = { path = "../../utils/genjax" }
 genbrain_model_3dot = { path = "../../models/perception/3dot" }
 python = "<=3.12"
+ruff = ">=0.11.0,<0.12"
 
 [pypi-dependencies]
 genjax = "==0.10.0"
