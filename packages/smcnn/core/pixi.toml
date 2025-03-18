@@ -11,6 +11,7 @@ preview = ["pixi-build"]
 [dependencies]
 genbrain_smcnn_core = { path = "." }
 python = "<=3.12"
+ruff = ">=0.11.0,<0.12"
 
 [pypi-dependencies]
 genjax = ">=0.8.2.dev1,<0.9"

@@ -174,3 +174,4 @@ cython_debug/
 .pixi/*
 *.conda
 .DS_Store
+.pixi
