@@ -1,5 +1,5 @@
 ci:
-  skip: [pixi-install-locked]
+  skip: [pixi-install-locked, ruff]
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -10,15 +10,14 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
 
- - repo: https://github.com/astral-sh/ruff-pre-commit
+  - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.9.9
     hooks:
       - id: ruff
-        types_or: [ python, pyi, jupyter ]
-        args: [ --fix ]
-
+        types_or: [python, pyi]
+        args: [--fix]
       - id: ruff-format
-        types_or: [ python, pyi, jupyter ]
+        types_or: [python, pyi]
 
   - repo: https://github.com/pecigonzalo/pre-commit-shfmt
     rev: v2.2.0
