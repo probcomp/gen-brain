@@ -132,8 +132,7 @@ pm.initialize_p_assemblies(probmap_p)
 pm.run_scoring_circuitry()
 print(pm.total_score)
 
-# Next up test Particle. We'll need metadata to make one, and we'll test the new compressed version of the metadata.
-# test metadata formatting. "variable" is the variable name in the generative model. only requirement of latent_variables is that ALL latent variable values are the return from the proposal and model, and they are in order in the metadata accordint to their order in the return value. you want to add in the support of the last variable in any tuple description for support. Probmap will handle categorical indexing.
+
 latent_variables = [
     {
         "variable": "v3d",
@@ -186,10 +185,6 @@ obs_variables = [
     }
 ]
 
-# could probably change up samplescores a bit to not be a function
-# def apply(func, arg):
-#     return func(arg)
-# print("initializing particle")
 particle = smcnn.Particle(neurons_per_assembly, latent_variables, obs_variables)
 
 # start a samplescore sampler
@@ -216,14 +211,6 @@ obs_probs = get_categorical_probs(
 particle.score_likelihood((obs_probs,), vis_angle_observations[1])
 
 print("initializing particle filter")
-
-# sfp_proposal = jax.jit(init_prop_imp)
-# sfp_model = jax.jit(init_mod_imp)
-# sfp_obs = jax.jit(obs_mod_imp)
-# this shows you that the error stems from get_categorical_probs operating on  ("dot", "lights") with the correct argument structure.
-# particles = initialize_smcnn_particle_filter(key,
-#                                              (latent_variables, obs_variables), sfp_model,
-#                                              sfp_proposal, sfp_obs, 2, 1, (vis_angle_observations[1],))
 
 results = run_smcnn_particle_filter(
     (latent_variables, obs_variables),

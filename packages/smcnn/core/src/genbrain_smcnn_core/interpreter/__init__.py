@@ -8,8 +8,6 @@ np.seterr(divide="ignore")
 key = jax.random.PRNGKey(10000)
 key, subkey = jax.random.split(key, 2)
 
-# 3/6/25: replace these. 
-        #        self.accum["q"] = all_q_spikes[all_q_spikes < self.tik["q"][0]]
 def get_categorical_probs(key, genfunc_imp, v, args, constraints):
     try:
         trace, w = genfunc_imp(key, constraints, args)
@@ -160,17 +158,13 @@ def smcnn_particle_filter_step_variables(
 
 # there are no dependencies in these obs models. if there are, you have to rewrite this. 
 def smcnn_particle_filter_score_obs(key, obs_model, obs_args, obs_variables, particles, observation):
-    # print("scoring observations")
     for obs_variable in obs_variables:
         subkey = jax.random.split(key, len(particles))
         for obs_arg, particle in zip(obs_args, particles):
             key, subkey = jax.random.split(key, 2)
-            # this is receiving obs_args as all of the choices in particle choicemap that are indexed by their sample and their support. for a probability map, this will not work because its support is the broader 
-
             probs = get_categorical_probs(
                         subkey, obs_model, obs_variable["variable"], obs_arg, CMB.d({}))
             
-            # observation being passed here is a tuple. in the passing test it is a vector. 
             particle.score_likelihood((probs,), observation)
     return particles
 
@@ -185,7 +179,7 @@ def initialize_smcnn_particle_filter(
     num_particles,
     first_observation,
 ):
-    # print("initializing particle filter")
+    
     latent_variables, obs_variables = variables
     key, subkey = jax.random.split(key, 2)
     particles = [
@@ -206,12 +200,10 @@ def initialize_smcnn_particle_filter(
         particles,
         "init",
     )
-    # make sure obs args are arranged in order in metadata.  
-
+    
     obs_args = [tuple([get_variable_state(v["variable"], p.choicemap[v["variable"]], latent_variables) for v in latent_variables])
         for p in particles
     ]
-    # this isn't quite right because for a probabilitymap, the argument isn't correct. what its doing here is indexing the egocentric map at 0 or 1, when its really asking whether each index is occupied. 
     particles = smcnn_particle_filter_score_obs(
         subkey,
         obs_model,
@@ -301,8 +293,6 @@ def run_smcnn_particle_filter(
         resampler.norm_and_resample()
         resampler_per_step.append(resampler)
 
-    #   return particles_per_step, resampler_per_step
-    # this return will let you step forward one more time.
     return (
         key,
         particles_per_step,
@@ -342,6 +332,3 @@ def particle_validation(pf_results, particle_id):
     }
     return full_validation
 
-
-# note if you want to set q to run scoring directly after sampling, you simply take the start of scoring time
-# and subtract sample time from it, removing all of the leading 0s corresponding to this value.

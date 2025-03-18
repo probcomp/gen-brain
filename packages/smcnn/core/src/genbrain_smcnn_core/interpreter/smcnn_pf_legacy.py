@@ -186,7 +186,6 @@ def smcnn_particle_filter_step_variables(
 def smcnn_particle_filter_score_obs(
     key, observation, obs_model, obs_args, obs_variables, model_variables, particles
 ):
-    # print("scoring observations")
     obs_indexer = 0
     for obs_variable in obs_variables:
         subkey = jax.random.split(key, len(particles))
@@ -207,7 +206,6 @@ def smcnn_particle_filter_score_obs(
         obs_indexer += 1
     return particles
 
-
 def initialize_smcnn_particle_filter(
     key,
     variables,
@@ -219,7 +217,7 @@ def initialize_smcnn_particle_filter(
     first_observation,
     dig_or_analog,
 ):
-    # print("initializing particle filter")
+    
     latent_variables, obs_variables = variables
     key, subkey = jax.random.split(key, 2)
     
@@ -246,7 +244,7 @@ def initialize_smcnn_particle_filter(
         tuple([v["support"][p.choicemap[v["variable"]]] for v in latent_variables])
         for p in particles
     ]
-    # print(obs_args)
+    
     particles = smcnn_particle_filter_score_obs(
         subkey,
         first_observation,
