@@ -53,7 +53,6 @@ def smcnn_particle_filter_step_variables(
         if sampled_list == []:
             empty_cm = CMB.d({})
             for lv in latent_variables:
-                print(lv)
                 if lv["q_parents"] == []:
                     q_probs = get_categorical_probs(
                         key,
@@ -73,8 +72,6 @@ def smcnn_particle_filter_step_variables(
                     sampled_list.append(lv["variable"])
         else:
             for lv in latent_variables:
-                print("in non empty sampled list loop")
-                
                 # asks if all of lvs parents have been sampled and lv itself has not been sampled. 
                 if (set(lv["q_parents"]) <= set(sampled_list)) and (
                     lv["variable"] not in sampled_list
@@ -215,10 +212,6 @@ def initialize_smcnn_particle_filter(
         for p in particles
     ]
     # this isn't quite right because for a probabilitymap, the argument isn't correct. what its doing here is indexing the egocentric map at 0 or 1, when its really asking whether each index is occupied. 
-    print("obs arguments")
-    print(obs_args)
-    print("particle 0 choicemap")
-    print(particles[0].choicemap)
     particles = smcnn_particle_filter_score_obs(
         subkey,
         obs_model,
