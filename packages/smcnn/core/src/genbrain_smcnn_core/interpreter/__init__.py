@@ -8,6 +8,7 @@ np.seterr(divide="ignore")
 key = jax.random.PRNGKey(10000)
 key, subkey = jax.random.split(key, 2)
 
+
 def get_categorical_probs(key, genfunc_imp, v, args, constraints):
     try:
         trace, w = genfunc_imp(key, constraints, args)
@@ -21,10 +22,12 @@ def get_categorical_probs(key, genfunc_imp, v, args, constraints):
         probs, support = trace.get_subtrace((v,)).args
     return probs
 
+
 def filter_variable(v, variables):
     return list(filter(lambda x: x["variable"] == v, variables))[0]
 
-# you are cycling through latent variables until you find the "variable" that matches the ID of the parent. when you find it, return its state from the choicemap. but the choicemaps in smcnns are a bunch of indices. you have to index the support of the target variable to get the actual state. this has to be different for distributions and probabilitymaps, where choices in pmaps are a series of indices, which index a single support. this will return the actual sample from the provided support. 
+
+# you are cycling through latent variables until you find the "variable" that matches the ID of the parent. when you find it, return its state from the choicemap. but the choicemaps in smcnns are a bunch of indices. you have to index the support of the target variable to get the actual state. this has to be different for distributions and probabilitymaps, where choices in pmaps are a series of indices, which index a single support. this will return the actual sample from the provided support.
 def get_variable_state(target_variable, state, latent_variables):
     for lv in latent_variables:
         if lv["variable"] == target_variable:
@@ -32,7 +35,7 @@ def get_variable_state(target_variable, state, latent_variables):
                 return lv["support"][state]
             elif lv["type"] == "probmap":
                 return jnp.array([lv["support"][i] for i in state])
-        
+
 
 def smcnn_particle_filter_step_variables(
     key,
@@ -40,11 +43,10 @@ def smcnn_particle_filter_step_variables(
     proposal_args,
     model,
     model_args,
-    latent_variables, 
+    latent_variables,
     particles,
     init_or_step,
 ):
-
     def sample_full_proposal(key, particle, sampled_list, prop_args):
         if set([v["variable"] for v in latent_variables]) == set(sampled_list):
             return particle
@@ -53,72 +55,79 @@ def smcnn_particle_filter_step_variables(
             for lv in latent_variables:
                 if lv["q_parents"] == []:
                     q_probs = get_categorical_probs(
-                        key,
-                        proposal,
-                        lv["q_id"],
-                        prop_args,
-                        empty_cm
+                        key, proposal, lv["q_id"], prop_args, empty_cm
                     )
                     if not np.isfinite(q_probs).all():
                         print("Nan prb in proposal layer 1")
                         print(prop_args)
                         print(lv["variable"])
                     race_start_time = 0
-                    particle.start_sampler(
-                        lv["variable"], (q_probs,), race_start_time
-                    )
+                    particle.start_sampler(lv["variable"], (q_probs,), race_start_time)
                     sampled_list.append(lv["variable"])
         else:
             for lv in latent_variables:
-                # asks if all of lvs parents have been sampled and lv itself has not been sampled. 
+                # asks if all of lvs parents have been sampled and lv itself has not been sampled.
                 if (set(lv["q_parents"]) <= set(sampled_list)) and (
                     lv["variable"] not in sampled_list
                 ):
-                    # you're just making a choicemap here of the parents. you are cycling through latent variables until you find the "variable" that matches the ID of the parent. when you find it, return its state from the choicemap. but the choicemap is a bunch of indices. you have to index the support of the parent variable. this has to be different for distributions and probabilitymaps, where choices in pmaps are a series of indices, which index a single support. 
+                    # you're just making a choicemap here of the parents. you are cycling through latent variables until you find the "variable" that matches the ID of the parent. when you find it, return its state from the choicemap. but the choicemap is a bunch of indices. you have to index the support of the parent variable. this has to be different for distributions and probabilitymaps, where choices in pmaps are a series of indices, which index a single support.
                     parent_states = CMB.d(
-                        { parent_id : get_variable_state(parent_id, particle.choicemap[parent_id], latent_variables)
+                        {
+                            parent_id: get_variable_state(
+                                parent_id,
+                                particle.choicemap[parent_id],
+                                latent_variables,
+                            )
                             for parent_id in lv["q_parents"]
                         }
                     )
                     parent_sample_times = [
-                        particle.samplescores[v].sample_time  if v in particle.samplescores.keys() else particle.probabilitymaps[v].sample_time for v in lv["q_parents"]
+                        particle.samplescores[v].sample_time
+                        if v in particle.samplescores.keys()
+                        else particle.probabilitymaps[v].sample_time
+                        for v in lv["q_parents"]
                     ]
                     q_probs = get_categorical_probs(
                         key,
                         proposal,
-                        lv["q_id"], 
+                        lv["q_id"],
                         prop_args,
                         parent_states,
                     )
                     race_start_time = np.max(parent_sample_times)
-                    particle.start_sampler(
-                        lv["variable"], (q_probs,), race_start_time
-                    )
+                    particle.start_sampler(lv["variable"], (q_probs,), race_start_time)
                     sampled_list.append(lv["variable"])
         return sample_full_proposal(key, particle, sampled_list, prop_args)
 
     subkeys = jax.random.split(key, len(particles))
     # can easily make this a vmap.
-    _ = list(map(lambda sb_key, particle, prop_args: sample_full_proposal(sb_key, particle, [], prop_args),
-                subkeys,
-                particles,
-                proposal_args))
+    _ = list(
+        map(
+            lambda sb_key, particle, prop_args: sample_full_proposal(
+                sb_key, particle, [], prop_args
+            ),
+            subkeys,
+            particles,
+            proposal_args,
+        )
+    )
 
     def assess_under_model(key, particle, mod_args):
         for lv in latent_variables:
             parent_states = CMB.d(
-                { lv["variable"]
-                     : get_variable_state(parent_id, particle.choicemap[parent_id], latent_variables)
-                            for parent_id in lv["p_parents"]
+                {
+                    lv["variable"]: get_variable_state(
+                        parent_id, particle.choicemap[parent_id], latent_variables
+                    )
+                    for parent_id in lv["p_parents"]
                 }
             )
             parents_sample_times = [
                 particle.samplescores[v].sample_time for v in lv["p_parents"]
             ]
             if lv["type"] == "distribution":
-                self_sample_time = particle.samplescores[
-                    lv["variable"]].sample_time
-            elif lv["type"]: 
+                self_sample_time = particle.samplescores[lv["variable"]].sample_time
+            elif lv["type"]:
                 self_sample_time = particle.probabilitymaps[lv["variable"]].sample_time
             score_start_time = np.max(parents_sample_times + [self_sample_time])
             p_probs = get_categorical_probs(
@@ -156,15 +165,19 @@ def smcnn_particle_filter_step_variables(
         _ = list(map(lambda p: p.populate_state_buffer(), particles))
     return particles
 
-# there are no dependencies in these obs models. if there are, you have to rewrite this. 
-def smcnn_particle_filter_score_obs(key, obs_model, obs_args, obs_variables, particles, observation):
+
+# there are no dependencies in these obs models. if there are, you have to rewrite this.
+def smcnn_particle_filter_score_obs(
+    key, obs_model, obs_args, obs_variables, particles, observation
+):
     for obs_variable in obs_variables:
         subkey = jax.random.split(key, len(particles))
         for obs_arg, particle in zip(obs_args, particles):
             key, subkey = jax.random.split(key, 2)
             probs = get_categorical_probs(
-                        subkey, obs_model, obs_variable["variable"], obs_arg, CMB.d({}))
-            
+                subkey, obs_model, obs_variable["variable"], obs_arg, CMB.d({})
+            )
+
             particle.score_likelihood((probs,), observation)
     return particles
 
@@ -179,13 +192,12 @@ def initialize_smcnn_particle_filter(
     num_particles,
     first_observation,
 ):
-    
     latent_variables, obs_variables = variables
     key, subkey = jax.random.split(key, 2)
     particles = [
-            master.Particle(neurons_per_assembly, latent_variables, obs_variables)
-            for i in range(num_particles)
-        ]
+        master.Particle(neurons_per_assembly, latent_variables, obs_variables)
+        for i in range(num_particles)
+    ]
     # this is correct. format so initial model always takes no arguments, proposal only takes
     # the first observation.
     model_args = [() for i in range(num_particles)]
@@ -200,17 +212,20 @@ def initialize_smcnn_particle_filter(
         particles,
         "init",
     )
-    
-    obs_args = [tuple([get_variable_state(v["variable"], p.choicemap[v["variable"]], latent_variables) for v in latent_variables])
+
+    obs_args = [
+        tuple(
+            [
+                get_variable_state(
+                    v["variable"], p.choicemap[v["variable"]], latent_variables
+                )
+                for v in latent_variables
+            ]
+        )
         for p in particles
     ]
     particles = smcnn_particle_filter_score_obs(
-        subkey,
-        obs_model,
-        obs_args,
-        obs_variables,
-        particles,
-        first_observation[0]
+        subkey, obs_model, obs_args, obs_variables, particles, first_observation[0]
     )
     particles = list(map(lambda p: p.score_particle(), particles))
     return particles
@@ -244,7 +259,7 @@ def run_smcnn_particle_filter(
         obs_model,
         assembly_size,
         num_particles,
-        (observations[0],)
+        (observations[0],),
     )
     print("Initialized SMCNN Particle Filter")
     latent_variables, obs_variables = variables
@@ -253,7 +268,7 @@ def run_smcnn_particle_filter(
     resampler = master.Resampler(particles)
     resampler.norm_and_resample()
     resampler_per_step.append(resampler)
-    
+
     for step, observation in enumerate(observations[1:]):
         print("step", step)
         particles = resampler.particles
@@ -261,7 +276,12 @@ def run_smcnn_particle_filter(
         model_args = [
             tuple(
                 [
-                    get_variable_state(v["variable"], p.resampled_choicemap[v["variable"]], latent_variables) for v in latent_variables
+                    get_variable_state(
+                        v["variable"],
+                        p.resampled_choicemap[v["variable"]],
+                        latent_variables,
+                    )
+                    for v in latent_variables
                 ]
             )
             for p in particles
@@ -277,15 +297,19 @@ def run_smcnn_particle_filter(
             particles,
             "step",
         )
-        obs_args = [tuple([get_variable_state(v["variable"], p.choicemap[v["variable"]], latent_variables) for v in latent_variables])
-        for p in particles]
+        obs_args = [
+            tuple(
+                [
+                    get_variable_state(
+                        v["variable"], p.choicemap[v["variable"]], latent_variables
+                    )
+                    for v in latent_variables
+                ]
+            )
+            for p in particles
+        ]
         particles = smcnn_particle_filter_score_obs(
-            subkey,
-            obs_model,
-            obs_args,
-            obs_variables,
-            particles,
-            observation
+            subkey, obs_model, obs_args, obs_variables, particles, observation
         )
         particles = list(map(lambda p: p.score_particle(), particles))
         particles_per_step.append(particles)
@@ -331,4 +355,3 @@ def particle_validation(pf_results, particle_id):
         "resample": resampled_on_step,
     }
     return full_validation
-
