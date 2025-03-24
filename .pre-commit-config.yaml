@@ -1,5 +1,5 @@
 ci:
-  skip: [pixi-install-locked]
+  skip: [pixi-install-locked, ruff]
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -11,7 +11,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.5.5
+    rev: v0.9.9
     hooks:
       - id: ruff
         types_or: [python, pyi]

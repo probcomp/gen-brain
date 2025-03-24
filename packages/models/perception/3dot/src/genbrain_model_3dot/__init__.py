@@ -1,9 +1,6 @@
 import itertools
 import jax
 
-# from genbrain_utils_genjax import smc
-
-
 from genbrain_smcnn_core.distributions import (
     discrete_norm,
     disc_gauss_unnorm,
@@ -17,44 +14,7 @@ from jax import tree_util, jit
 import numpy as np
 from genjax import ChoiceMapBuilder as CMB
 import tensorflow_probability as tfp
-
-# from mpl_toolkits.mplot3d.art3d import Line3DCollection
 tfd = tfp.distributions
-
-# from smc_genjax import run_particle_filter
-# from interpreter_genjax04.snmc_distributions04 import (  # type: ignore
-#     discrete_norm,
-#     disc_gauss_unnorm,
-
-#     discrete_truncnorm,
-#     labeled_categorical,
-#     normalize,
-#     unicat,
-#     upweight_zone,
-# )
-
-# from interpreter_genjax04.snmc_utils_genjax04 import (  # type: ignore
-#     run_snmc_livedemo,
-#     run_snmc_particle_filter,
-#     constrained_step_demo,
-# )
-# from interpreter_genjax04.plot_snmc_run import (
-#     plot_particle_weight_and_state,
-#     snmc_spikes_wrapper,
-#     selectivity_index,
-#     my_tab20,
-#     merge_particle_dicts,
-#     merge_component_dicts,
-#     get_components,
-#     invert_spiketime_labels,
-#     lfp_and_spikes,
-#     lfp_and_spikes_animated,
-#     eeg,
-#     direction_selectivity,
-#     animate_snmc_spikes,
-#     organize_labels_into_layers
-#     )
-
 np.seterr(divide="ignore")
 # console = genjax.pretty()
 
@@ -96,8 +56,9 @@ egocentric_2d_map = jnp.array(list(itertools.product(visual_angles, visual_angle
 objects = jnp.array([0])
 bool_support = jnp.array([0, 1])
 diams = jnp.arange(1.0, 3.0, 0.1)
-σ_ang = 0.05
-σ_diam = 0.1
+
+σ_ang = 0.05 # type: ignore
+σ_diam = 0.1 
 σ_pos = 0.1
 σ_vel = 0.1
 σ_pos_model = 1
@@ -105,21 +66,17 @@ diams = jnp.arange(1.0, 3.0, 0.1)
 σ_ang_obs = 0.1
 pixflip_noise = 0.03
 
-
 def probvecs_to_R3(arr1, arr2, arr3):
     probmat2d = jnp.outer(arr1, arr2)
     result = probmat2d[:, :, None] * arr3
     return jnp.ravel(result)
 
-
 def probvecs_to_R2(arr1, arr2):
     probmat2d = jnp.outer(arr1, arr2)
     return jnp.ravel(probmat2d)
 
-
 def index_pytree(pytree, idx):
     return tree_util.tree_map(lambda x: x[idx], pytree)
-
 
 # there are incompatible combinations of z and r, b/c r is the hyp and
 # can't be smaller than z.
@@ -273,29 +230,6 @@ def obj_to_ego_matter(xyz, radius):
 
 # the angles are correct here, but the arg of the highest ego prob corresponds to depth 1, and it is 5. i think this is because the close gaussians are cut off and renormed, so nearby gaussians will add more weight (i.e. the gaussian cloud will be cut off and renormed). use an unnormed truncated gaussian for addition.
 
-
-# def plot_spherical_probs(prob_arr_jx):
-#     prob_arr_np = np.array(prob_arr_jx)
-#     fig = plt.figure(figsize=(8, 8))
-#     ax = fig.add_subplot(111, projection="3d")
-#     # Normalize values for colormap
-#     colors = plt.cm.Purples(prob_arr_np)
-#     plot_thresh = 0.05
-#     for i, (th, phi, r) in enumerate(egocentric_3d_map):
-#         x, y, z = spherical_to_xyz(th, phi, r)
-#         color = colors[i]
-#         if prob_arr_np[i] > plot_thresh:
-#             print(x, y, z)
-#             ax.scatter(x, y, z, c=color, marker="o", alpha=prob_arr_np[i])
-#     ax.set_xlabel("X")
-#     ax.set_ylabel("Y")
-#     ax.set_zlabel("Z")
-#     ax.set_xlim([xs[0], xs[-1]])
-#     ax.set_ylim([ys[0], ys[-1]])
-#     ax.set_zlim([zs[0], zs[-1]])
-#     plt.show()
-
-
 @genjax.vmap(in_axes=0)
 @genjax.gen
 def egocentric_matter_map(prob_occupied):
@@ -304,7 +238,6 @@ def egocentric_matter_map(prob_occupied):
         @ "ego_matter"
     )
     return matter
-
 
 @genjax.gen
 def initial_model():
@@ -318,11 +251,6 @@ def initial_model():
     egocentric_probability_map = obj_to_ego_matter(xyzₜ, diam / 2)
     vc_θϕr = egocentric_matter_map(egocentric_probability_map) @ "ego_pos"
     return (vₜ, xyzₜ, vc_θϕr, lights, diam)
-
-
-# the -inf score is from vcr. need to reason through why Q's proposed matter map should
-# yield six -inf scores.
-
 
 @genjax.gen
 def step_model(vₚ, xyzₚ, vc_θϕrₚ, lightsₚ, diamₚ):
@@ -381,7 +309,6 @@ def obs_model(vₜ, xyzₜ, vc_θϕr, lights, diam):
 
 """ GETTING OBSERVATIONS """
 
-
 @jit
 def dig_2d_array(white_indices):
     def ind_to_dig(i):
@@ -391,33 +318,9 @@ def dig_2d_array(white_indices):
         jnp.arange(len(egocentric_2d_map))
     ).astype(int)
 
-
-# def collect_quil_frames(directory, file_pattern="frame-*.png"):
-#     frame_regex = re.compile(r"frame-(\d+)\.png")
-#     frames = []
-#     for filename in os.listdir(directory):
-#         match = frame_regex.match(filename)
-#         if match:
-#             frame_number = int(match.group(1))
-#             frames.append((frame_number, os.path.join(directory, filename)))
-#     frames.sort(key=lambda x: x[0])
-#     frame_paths = [path for _, path in frames]
-#     numpy_frames = []
-#     for path in frame_paths:
-#         with Image.open(path) as img:
-#             # this must be going downwards?
-#             im = img.convert("L").point(lambda p: 1 if p > 0 else 0)
-#             numpy_frames.append((np.transpose(np.flipud(np.array(im))) > 0).astype(int))
-#     return numpy_frames
-
-
-# this has got to be just the loading of pixels from the .png read. Everything in here works. It's probably upside down or sideways or something. in the imread, the Y-axis is upside down that's probably it.
-
-
-# these calculations are right. this is agnostic to the actual frames. its tell you "if you are at location x = 0, y=999, your theta  phi is tp"
-def generate_pix_to_ego_2d_map(frm_indices_array, frame):
+def generate_pix_to_ego_2d_map(frm_indices_array, frame_shape):
     def map_to_ego_2d(pix):
-        x_pix, y_pix = frame.shape
+        x_pix, y_pix = frame_shape
         θ = round_to_support(
             jnp.arctan((pix[0] - (x_pix / 2)) / jnp.abs(observer)), visual_angles
         )
@@ -428,31 +331,21 @@ def generate_pix_to_ego_2d_map(frm_indices_array, frame):
             jnp.all(egocentric_2d_map == jnp.array([θ, ϕ]), axis=1), size=1
         )[0][0]
         return ego_ind
-
     return jax.vmap(lambda pix: map_to_ego_2d(pix))(frm_indices_array)
 
-
-# you first start by creating an angle pair for each pixel in the 600x600 image.
-# you will now have a 1000^2 length array of indexes that take you from pixel locations to indexes in egocentric_2d_map
-
-
-# obs_frames = collect_quil_frames("/Users/nightcrawler/PointLightClj/saved_animation")[
-#     1:
-# ]
-# frame_indices = jnp.indices(obs_frames[0].shape)
-# frame_indices_array = jnp.stack(
-#     [frame_indices[0].ravel(), frame_indices[1].ravel()], axis=-1
-# )
-# all this is telling you is where in a x by y grid of size 1000, 1000 each egocentric 2d angle is. its all correct.
-# pix_to_ego_2d_map = generate_pix_to_ego_2d_map(
-#     frame_indices_array, obs_frames[1]
-# ).reshape(obs_frames[1].shape)
+frame_shape = (600, 600)
+frame_indices = jnp.indices(frame_shape)
+frame_indices_array = jnp.stack(
+    [frame_indices[0].ravel(), frame_indices[1].ravel()], axis=-1
+)
+pix_to_ego_2d_map = generate_pix_to_ego_2d_map(
+    frame_indices_array, frame_shape).reshape(frame_shape)
 
 
-# def find_occupied_2d_angles(frame):
-#     mask = jnp.where(frame, 1.0, jnp.nan)
-#     occupied_inds = mask * pix_to_ego_2d_map
-#     return dig_2d_array(occupied_inds)
+def find_occupied_2d_angles(frame):
+    mask = jnp.where(frame, 1.0, jnp.nan)
+    occupied_inds = mask * pix_to_ego_2d_map
+    return dig_2d_array(occupied_inds)
 
 
 # observations = jax.vmap(lambda obs: find_occupied_2d_angles(obs))(jnp.array(obs_frames))
@@ -750,233 +643,3 @@ def test_obs_constraint(observation):
     return tr, w
 
 
-""" Plotting """
-
-
-# def animate_current_particle_locs(
-#     observations, points_3D_seq, scores, plot_history, interval=50
-# ):
-#     observation_grids = [
-#         np.transpose(np.fliplr(o.reshape(len(visual_angles), len(visual_angles))))
-#         for o in observations
-#     ]
-#     fig = plt.figure(figsize=(12, 6))
-#     cmap = my_tab20(len(scores[0]))
-#     ax2D = fig.add_subplot(121)
-#     ax3D = fig.add_subplot(122, projection="3d")
-#     win = 0.3
-#     ax2D.set_xlabel("θ")
-#     ax2D.set_ylabel("ϕ")
-#     ax3D.set_xlabel("X")
-#     ax3D.set_ylabel("Y")
-#     ax3D.set_zlabel("Z")
-#     ax3D.set_title("3D Hypotheses (Y = Depth)")
-#     ax2D.set_title("2D Observation")
-#     ax3D.set_xlim([xs[0], xs[-1]])
-#     ax3D.set_ylim([ys[0], ys[-1]])
-#     ax3D.set_zlim([zs[0], zs[-1]])
-#     num_particles = len(points_3D_seq[0])
-#     im = ax2D.imshow(
-#         observation_grids[0], cmap="gray", interpolation="none", vmin=0, vmax=1
-#     )
-#     particles_3D = [ax3D.plot([], [], [], "o")[0] for _ in range(num_particles)]
-#     tails_3D = [
-#         ax3D.plot([], [], [], "-", color=cmap[i], alpha=0.3, linewidth=0.5)[0]
-#         for i in range(num_particles)
-#     ]
-
-#     def update(frame):
-#         im.set_array(observation_grids[frame])
-#         for i, (particle, (x, y, z)) in enumerate(
-#             zip(particles_3D, points_3D_seq[frame])
-#         ):
-#             particle.set_data([x], [y])
-#             particle.set_alpha(float(jnp.exp(float(scores[frame][i])) ** 0.1))
-#             particle.set_3d_properties([z])
-#             particle.set_color(cmap[i])
-#             if plot_history:
-#                 history = np.array(points_3D_seq[: frame + 1])[:, i, :]
-#                 tails_3D[i].set_data(history[:, 0], history[:, 1])
-#                 tails_3D[i].set_3d_properties(history[:, 2])
-#         return [im] + particles_3D + tails_3D
-
-#     anim = FuncAnimation(
-#         fig, update, frames=len(observations), interval=interval, blit=True
-#     )
-#     return anim
-
-
-# pscores = [jnp.zeros(num_particles) for i in range(len_sim + 1)]
-# animate_current_particle_locs(observations[0:len_sim], xyz, pscores, True)
-
-
-# def animate_trajectories_only_3D(xyz_inferences, scores, interval=50):
-#     fig = plt.figure(figsize=(12, 6))
-#     cmap = colormaps["plasma"]
-#     ax3D = fig.add_subplot(111, projection="3d")
-#     win = 0.3
-#     ax3D.set_xlabel("X")
-#     ax3D.set_ylabel("Y")
-#     ax3D.set_zlabel("Z")
-#     ax3D.set_xlim([xs[0], xs[-1]])
-#     ax3D.set_ylim([ys[0], ys[-1]])
-#     ax3D.set_zlim([zs[0], zs[-1]])
-#     ax3D.set_title("Inferred 3D Trajectories")
-#     num_steps = len(scores)
-#     num_particles = len(scores[0])
-#     norm = plt.Normalize(0, num_steps)
-#     particle_segments = []
-#     num_steps = len(xyz_inferences)
-#     num_particles = len(scores[0])
-#     cmap_by_step = np.linspace(0, num_steps, num_steps)
-#     segments_by_step = []
-#     seg_colors_by_step = []
-#     for curr_step in range(num_steps):
-#         step_segs = []
-#         step_colors = []
-#         for p_ind in range(num_particles):
-#             xyz = xyz_inferences[:, p_ind]
-#             segs = [[list(xyz[i]), list(xyz[i + 1])] for i in range(curr_step)]
-#             colors = [cmap_by_step[i] for i in range(curr_step)]
-#             step_segs = step_segs + segs
-#             step_colors = step_colors + colors
-#         segments_by_step.append(step_segs)
-#         seg_colors_by_step.append(step_colors)
-#     segments_by_step = segments_by_step[1:]
-#     seg_colors_by_step = seg_colors_by_step[1:]
-
-#     def update(frame):
-#         ax3D.cla()
-#         ax3D.set_xlabel("X")
-#         ax3D.set_ylabel("Y")
-#         ax3D.set_zlabel("Z")
-#         ax3D.set_xlim([xs[0], xs[-1]])
-#         ax3D.set_ylim([ys[0], ys[-1]])
-#         ax3D.set_zlim([zs[0], zs[-1]])
-#         ax3D.set_title("3D Hypotheses (Y = Depth)")
-#         lc = Line3DCollection(
-#             segments_by_step[frame], cmap=cmap, norm=norm, linewidths=1
-#         )
-#         lc.set_array(seg_colors_by_step[frame])
-#         ax3D.add_collection3d(lc)
-#         return (lc,)
-
-#     anim = FuncAnimation(
-#         fig, update, frames=num_steps - 1, interval=interval, blit=False
-#     )
-#     return anim
-
-
-# def make_probability_heatmap(matrix):
-#     if len(matrix.shape) == 3:
-#         x, y, z = np.indices(matrix.shape)
-#         fig = plt.figure(figsize=(10, 7))
-#         ax = fig.add_subplot(111, projection="3d")
-#         ax.set_xlabel("X")
-#         ax.set_ylabel("Y")
-#         ax.set_zlabel("Z")
-#         scatter = ax.scatter(x, y, z, c=matrix.flatten(), cmap="viridis")
-#         fig.colorbar(scatter, ax=ax, label="Value")
-#     plt.show()
-
-
-# """ SMCNNs """
-
-
-# def extract_xyz_from_snmc(pf_results, obs, particles_to_animate):
-#     xyz_inferences = []
-#     p_scores = []
-#     particles_per_step = pf_results[1]
-#     resampler_per_step = pf_results[2]
-#     for step in range(len(obs)):
-#         particles = particles_per_step[step]
-#         particle_choicemaps = [
-#             p.choicemap for i, p in enumerate(particles) if i in particles_to_animate
-#         ]
-#         particle_scores = resampler_per_step[step].log_weights
-#         # note you would normally index the supports b/c
-#         # choicemap is an assembly index. but
-#         xyz = np.array([xyz_point_cloud[cm["xyz"]] for cm in particle_choicemaps])
-#         xyz_inferences.append(xyz)
-#         p_scores.append(particle_scores)
-#     return np.array(xyz_inferences), p_scores
-
-
-# model_variables = [
-#     {"variable": "v3d", "parents": [], "support": xyz_vels, "subtraced": []},
-#     {
-#         "variable": "xyz",
-#         "parents": ["v3d"],
-#         "support": xyz_point_cloud,
-#         "subtraced": [],
-#     },
-#     {
-#         "variable": "ego_pos",
-#         "parents": ["xyz"],
-#         "support": egocentric_3d_map,
-#         "subtraced": [],
-#     },
-# ]
-
-# proposal_variables = [
-#     {
-#         "variable": "ego_pos",
-#         "parents": [],
-#         "support": egocentric_3d_map,
-#         "subtraced": [],
-#     },
-#     {
-#         "variable": "xyz",
-#         "parents": ["ego_pos"],
-#         "support": xyz_point_cloud,
-#         "subtraced": [],
-#     },
-#     {"variable": "v3d", "parents": ["xyz"], "support": xyz_vels, "subtraced": []},
-# ]
-
-# obs_variables = [
-#     {
-#         "variable": "obs_angles",
-#         "parents": [],
-#         "support": egocentric_2d_map,
-#         "subtraced": [],
-#     }
-# ]
-
-# variables = [model_variables, proposal_variables, obs_variables]
-# assembly_size = 10
-
-
-# def make_lfp_and_spikes(pf_results, obs):
-#     spikes = merge_particle_dicts(
-#         snmc_spikes_wrapper(
-#             pf_results,
-#             "r",
-#             range(len(obs)),
-#             range(num_particles),
-#             get_components(depths, range(num_particles), ["ctx"]),
-#             False,
-#         )[0]
-#     )
-
-#     phase_precession_neurons = ["assemblies_p" + str(i) for i, x in enumerate(depths)]
-#     particle = 1
-#     r_spikes_particle = snmc_spikes_wrapper(
-#         pf_results, "r", range(len(obs)), [particle], phase_precession_neurons, False
-#     )[0]
-#     # these are a merging of assembly neurons in a single particle. i.e. assembly neuron 1-1 will be merged with 1-2.
-#     merged_assemblies = merge_component_dicts(
-#         r_spikes_particle[0], phase_precession_neurons
-#     )
-
-#     merge_components = merge_component_dicts(
-#         spikes, get_components(depths, range(num_particles), "ctx")
-#     )
-#     layered = organize_labels_into_layers(merge_components)
-#     # return merged_assemblies
-#     #    lfp = lfp_and_spikes(merged_assemblies, eeg(spikes))
-#     lfp = lfp_and_spikes(merge_components, eeg(spikes), False)
-#     #    anim = lfp_and_spikes_animated(merged_assemblies, lfp)
-#     anim = lfp_and_spikes_animated(invert_spiketime_labels(layered), lfp)
-#     #    return anim
-#     return anim

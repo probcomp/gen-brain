@@ -1,6 +1,6 @@
 import numpy as np
 import jax
-from smcnn.core.interpreter.digital import (
+from genbrain_smcnn_core.interpreter.digital_legacy import (
     Resampler,
     Particle,
     SampleScore_Base,
@@ -149,6 +149,13 @@ class Particle_Analog(Particle):
         for k, v in self.samplescores.items():
             state = choices[k]
             v.state_buffer[str(state)].append(0.0)
+
+
+class ProbabilityMap(): 
+    def __init__(self, neurons_per_assembly, probability_array, support, distribution):
+        self.distribution = distribution
+        self.probability_array = probability_array
+        self.support = support
 
 
 class SampleScore_Analog(SampleScore_Base):
