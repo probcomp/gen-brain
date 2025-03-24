@@ -4,7 +4,6 @@ import jax.numpy as jnp
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import matplotlib.patches as mpatches
-import genstudio
 import seaborn as sns
 import copy
 from astropy.convolution import convolve_fft, Gaussian1DKernel
