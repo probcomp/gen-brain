@@ -1,5 +1,4 @@
 import numpy as np
-import jax.numpy as jnp
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import matplotlib.patches as mpatches
@@ -554,7 +553,7 @@ def selectivity_index(pf_results, particle_id, variable):
     preference_index = list(
         map(lambda x: p_i(x), labels_and_counts_for_neurons_that_spiked)
     )
-    labels_only = [l for (l, spikes) in labels_and_counts_for_neurons_that_spiked]
+    labels_only = [lb for (lb, spikes) in labels_and_counts_for_neurons_that_spiked]
     print("LABELS ONLY")
     print(labels_only)
     layer = {
