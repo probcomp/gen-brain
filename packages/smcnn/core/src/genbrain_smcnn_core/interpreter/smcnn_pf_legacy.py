@@ -8,7 +8,8 @@ np.seterr(divide="ignore")
 key = jax.random.PRNGKey(10000)
 key, subkey = jax.random.split(key, 2)
 
-# 3/6/25: replace these. 
+# 3/6/25: replace these.
+
 
 def get_categorical_probs_obs(key, genfunc_sim, v, args):
     trace = genfunc_sim(key, args)
@@ -17,6 +18,7 @@ def get_categorical_probs_obs(key, genfunc_sim, v, args):
     else:
         probs = trace.get_subtrace((v,)).args
     return probs[0]
+
 
 def get_categorical_probs(key, genfunc_imp, v, args, constraints):
     trace, w = genfunc_imp(key, constraints, args)
@@ -39,8 +41,10 @@ def get_variable_id(variable_dict, prop_model_obs):
             var = (pmo[1], variable_dict["variable"])
     return var
 
+
 def filter_variable(v, variables):
     return list(filter(lambda x: x["variable"] == v, variables))[0]
+
 
 def smcnn_particle_filter_step_variables(
     key,
@@ -206,6 +210,7 @@ def smcnn_particle_filter_score_obs(
         obs_indexer += 1
     return particles
 
+
 def initialize_smcnn_particle_filter(
     key,
     variables,
@@ -217,14 +222,13 @@ def initialize_smcnn_particle_filter(
     first_observation,
     dig_or_analog,
 ):
-    
     latent_variables, obs_variables = variables
     key, subkey = jax.random.split(key, 2)
-    
+
     particles = [
-            master.Particle(neurons_per_assembly, latent_variables, obs_variables)
-            for i in range(num_particles)
-        ]
+        master.Particle(neurons_per_assembly, latent_variables, obs_variables)
+        for i in range(num_particles)
+    ]
     # this is correct. format so initial model always takes no arguments, proposal only takes
     # the first observation.
     model_args = [() for i in range(num_particles)]
@@ -244,7 +248,7 @@ def initialize_smcnn_particle_filter(
         tuple([v["support"][p.choicemap[v["variable"]]] for v in latent_variables])
         for p in particles
     ]
-    
+
     particles = smcnn_particle_filter_score_obs(
         subkey,
         first_observation,

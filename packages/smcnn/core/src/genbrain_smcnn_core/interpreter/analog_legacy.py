@@ -151,7 +151,7 @@ class Particle_Analog(Particle):
             v.state_buffer[str(state)].append(0.0)
 
 
-class ProbabilityMap(): 
+class ProbabilityMap:
     def __init__(self, neurons_per_assembly, probability_array, support, distribution):
         self.distribution = distribution
         self.probability_array = probability_array

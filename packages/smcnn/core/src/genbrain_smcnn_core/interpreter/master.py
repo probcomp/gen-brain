@@ -6,10 +6,12 @@ import math
 
 np.seterr(all="ignore")
 
+
 def normalize(x):
     return np.array(x) / sum(x)
 
-class Resampler():
+
+class Resampler:
     def __init__(self, particles):
         self.particles = particles
         self.particles_before_resampling = copy.deepcopy(particles)
@@ -24,7 +26,7 @@ class Resampler():
         self.winners = []
         self.log_weights = 0
         self.log_total_weight = 0
-        #self.ess_threshold = jnp.inf
+        # self.ess_threshold = jnp.inf
         self.resampled_on_step = True
         self.normalizer_λ = 0.5
         self.resampler_probs = []
@@ -158,9 +160,10 @@ class Resampler():
             p.resampled_choicemap = self.particles[w].choicemap
         self.particles = new_particles
 
-# want to eventually sample from a generative model and ask if the arg to each 
-# variable sums to 1. 
-class Particle():
+
+# want to eventually sample from a generative model and ask if the arg to each
+# variable sums to 1.
+class Particle:
     def __init__(self, neurons_per_assembly, latent_variables, observed_variables):
         self.latent_variables = latent_variables
         self.observed_variables = observed_variables
@@ -168,12 +171,13 @@ class Particle():
             v["variable"]: lambda pq_probs: SampleScore(
                 neurons_per_assembly, pq_probs, False
             )
-            for v in latent_variables if v["type"] == "distribution"
+            for v in latent_variables
+            if v["type"] == "distribution"
         }
         self.probabilitymaps = {
-            v["variable"]: lambda probmap: ProbabilityMap(
-                neurons_per_assembly, probmap)
-            for v in latent_variables if v["type"] == "probmap"
+            v["variable"]: lambda probmap: ProbabilityMap(neurons_per_assembly, probmap)
+            for v in latent_variables
+            if v["type"] == "probmap"
         }
         self.likelihood_circuits = {}
         for v in observed_variables:
@@ -209,15 +213,15 @@ class Particle():
             for ss in self.probabilitymaps[v_name].samplescores:
                 ss.score_start_time = score_time
 
-#i wanted to be able to just send the prbs argument without remaking the internals of the class. might need a method for this. 
+    # i wanted to be able to just send the prbs argument without remaking the internals of the class. might need a method for this.
     def start_sampler(self, v, prbs, race_start_time):
         if v in self.samplescores.keys():
             self.samplescores[v] = self.samplescores[v](prbs)
-          #  self.samplescores[v](prbs)
+            #  self.samplescores[v](prbs)
             sampled_state = self.samplescores[v].sample_proposal(race_start_time)
-        # why does this not work? maybe it does try it. 
+        # why does this not work? maybe it does try it.
         elif v in self.probabilitymaps.keys():
-            self.probabilitymaps[v] = self.probabilitymaps[v](prbs) 
+            self.probabilitymaps[v] = self.probabilitymaps[v](prbs)
             sampled_state = self.probabilitymaps[v].sample_proposal(race_start_time)
         self.choicemap[v] = sampled_state
 
@@ -256,7 +260,7 @@ class Particle():
         self.timestamp = np.max(ss.scoring_time for ss in self.samplescores.values())
 
 
-class P_Scoring_Unit():
+class P_Scoring_Unit:
     def __init__(self, neurons_per_assembly, catprobs, initialize_p):
         self.neurons_per_assembly = neurons_per_assembly
         self.num_states = len(catprobs[0])
@@ -267,13 +271,13 @@ class P_Scoring_Unit():
         self.p = 0
         self.p_tik = 0
         self.score_start_time = 0
-        self.score_complete_time = { "p" : 0 }
+        self.score_complete_time = {"p": 0}
         self.state = float("NaN")
         self.assemblies = {}
         self.sim_lambdas = {}
         catprobs_p = catprobs[0]
-        self.catprobs = {} 
-        self.num_pp_generated = {"p": 0 } 
+        self.catprobs = {}
+        self.num_pp_generated = {"p": 0}
         self.max_recursion_passes = 5
         self.pp_length = 100
         if initialize_p:
@@ -296,8 +300,7 @@ class P_Scoring_Unit():
         self.sim_lambdas.update(dict(sim_lambdas))
         return assembly_indices
 
-
-# issue here is that sometimes lambdas are multi-dimensional. i have no idea why. this doesn't happen in any of the tests. only in the particle filter loop. 
+    # issue here is that sometimes lambdas are multi-dimensional. i have no idea why. this doesn't happen in any of the tests. only in the particle filter loop.
     def populate_assemblies(self, ky, length_sim, starttime):
         for k, λ in self.sim_lambdas.items():
             if k[0] == ky:
@@ -305,19 +308,19 @@ class P_Scoring_Unit():
                     assembly_extension = poisson_process(λ, length_sim, starttime)
                     try:
                         self.assemblies[k][neuron] = np.concatenate(
-                            (self.assemblies[k][neuron], assembly_extension
-                            ))
+                            (self.assemblies[k][neuron], assembly_extension)
+                        )
                     except ValueError:
                         print("concat error")
                         print(self.assemblies[k][neuron])
-                        print('assembly extension')
+                        print("assembly extension")
                         print(assembly_extension)
                         print(assembly_extension.shape)
-                        print('length of sim')
+                        print("length of sim")
                         print(length_sim)
-                        print('start time')
+                        print("start time")
                         print(starttime)
-                        print('sim lambda')
+                        print("sim lambda")
                         print(λ)
 
     def clip_assemblies_to_scoretime(self):
@@ -374,7 +377,8 @@ class P_Scoring_Unit():
         self.p = np.log(len(self.mux["p"]) / self.kp)
         self.clip_assemblies_to_scoretime()
         return self
-    
+
+
 class SampleScore(P_Scoring_Unit):
     def __init__(self, neurons_per_assembly, catprobs, initialize_p):
         super().__init__(neurons_per_assembly, catprobs, initialize_p)
@@ -384,7 +388,7 @@ class SampleScore(P_Scoring_Unit):
         self.p_initialized = False
         q_assembly_indices = ["q" + str(i) for i in range(self.num_states)]
         catprobs_q = catprobs[0]
-        self.catprobs = {"q" : catprobs_q } 
+        self.catprobs = {"q": catprobs_q}
         q_lambdas = catprobs_q * self.population_λ["q"]
         self.assemblies = {
             i: [[] for i in range(self.neurons_per_assembly)]
@@ -407,7 +411,7 @@ class SampleScore(P_Scoring_Unit):
         self.mux = {pq + str(s): [] for pq, s in zip(ps_qs, staterange)}
         self.accum = {str(s): [] for s in np.arange(self.neurons_per_assembly)}
         self.state_buffer = {str(s): [] for s in np.arange(self.num_states)}
-        self.score_complete_time["q"] = 0 
+        self.score_complete_time["q"] = 0
         self.component_dict = {
             "mux": self.mux,
             "state_buffer": self.state_buffer,
@@ -416,7 +420,7 @@ class SampleScore(P_Scoring_Unit):
             "wta": self.wta,
             "assemblies": self.assemblies,
         }
-        
+
         # update this at resample time (i.e. make state_buffer the resampled state for each particle
         # in switch states.
         #        self.kp = int(self.pp_length / 10)
@@ -538,39 +542,63 @@ class SampleScore(P_Scoring_Unit):
         self.one_over_q = np.log(num_accumulator_spikes / self.kq)
         self.clip_assemblies_to_scoretime()
 
-# have to decide here if we wait until all samples are taken before we start scoring each choice. synching at first pass should be fine. 
-class ProbabilityMap(): 
+
+# have to decide here if we wait until all samples are taken before we start scoring each choice. synching at first pass should be fine.
+class ProbabilityMap:
     def __init__(self, neurons_per_assembly, probability_array):
         self.probability_array = probability_array[0]
         self.neurons_per_assembly = neurons_per_assembly
-        self.samplescores = list(map(lambda probs: SampleScore(neurons_per_assembly, (probs,), False), self.probability_array))
+        self.samplescores = list(
+            map(
+                lambda probs: SampleScore(neurons_per_assembly, (probs,), False),
+                self.probability_array,
+            )
+        )
         self.total_score = 0.0
         self.state = []
         self.sample_time = 0.0
+
     def sample_proposal(self, race_start_time):
         list(map(lambda ss: ss.sample_proposal(race_start_time), self.samplescores))
         self.state = jnp.array(list(map(lambda ss: ss.state, self.samplescores)))
-        self.sample_time = jnp.max(jnp.array(list(map(lambda ss: ss.sample_time, self.samplescores))))
+        self.sample_time = jnp.max(
+            jnp.array(list(map(lambda ss: ss.sample_time, self.samplescores)))
+        )
         return self.state
+
     def initialize_p_assemblies(self, p_probs_array):
-        list(map(lambda ss, p_probs: ss.initialize_p_assemblies(p_probs), self.samplescores, p_probs_array))
+        list(
+            map(
+                lambda ss, p_probs: ss.initialize_p_assemblies(p_probs),
+                self.samplescores,
+                p_probs_array,
+            )
+        )
+
     def constrain_state(self, state):
         self.state = state
-        list(map(lambda ss, p_probs: ss.constrain_state(state), self.samplescores, state))                
+        list(
+            map(lambda ss, p_probs: ss.constrain_state(state), self.samplescores, state)
+        )
+
     def run_scoring_circuitry(self):
         list(map(lambda ss: ss.run_scoring_circuitry(), self.samplescores))
-        self.total_score = np.sum(list(map(lambda ss: ss.p + ss.one_over_q, self.samplescores)))
+        self.total_score = np.sum(
+            list(map(lambda ss: ss.p + ss.one_over_q, self.samplescores))
+        )
+
 
 class PixelBasedLikelihood:
     def __init__(self, probvecs):
         self.assembly_size = 3
         self.p_scoring_units = {
-            "pix" + str(i): P_Scoring_Unit(self.assembly_size, probs, True) 
+            "pix" + str(i): P_Scoring_Unit(self.assembly_size, probs, True)
             for i, probs in enumerate(probvecs)
         }
         self.pixel_probs = []
         self.p = jnp.nan
         self.state = []
+
     # traditional log addition of all scores. however, if even one score is inf,
     # will put the whole render to 0 probability.
     def constrain_state(self, state):
@@ -580,8 +608,7 @@ class PixelBasedLikelihood:
         # switch to vmap
         pixel_probs = []
         for k, obs in zip(self.p_scoring_units.keys(), self.state):
-
-            # here obs should be a single value, 0 or 1. the observation is a list of 0s and 1s. it should be parsed here. 
+            # here obs should be a single value, 0 or 1. the observation is a list of 0s and 1s. it should be parsed here.
             print("scoring pixels")
             print(obs)
             print(obs.shape)
@@ -599,12 +626,13 @@ class PixelBasedLikelihood:
 
 
 def is_multidimensional(obj):
-    if isinstance(obj, (int, float)):  
+    if isinstance(obj, (int, float)):
         return False
     try:
-        return np.ndim(obj) == 1  
+        return np.ndim(obj) == 1
     except TypeError:
-        return False  
+        return False
+
 
 def poisson_process(λ, length_sim, starttime):
     if is_multidimensional(λ):

@@ -14,6 +14,7 @@ from jax import tree_util, jit
 import numpy as np
 from genjax import ChoiceMapBuilder as CMB
 import tensorflow_probability as tfp
+
 tfd = tfp.distributions
 np.seterr(divide="ignore")
 # console = genjax.pretty()
@@ -57,8 +58,8 @@ objects = jnp.array([0])
 bool_support = jnp.array([0, 1])
 diams = jnp.arange(1.0, 3.0, 0.1)
 
-σ_ang = 0.05 # type: ignore
-σ_diam = 0.1 
+σ_ang = 0.05  # type: ignore
+σ_diam = 0.1
 σ_pos = 0.1
 σ_vel = 0.1
 σ_pos_model = 1
@@ -66,17 +67,21 @@ diams = jnp.arange(1.0, 3.0, 0.1)
 σ_ang_obs = 0.1
 pixflip_noise = 0.03
 
+
 def probvecs_to_R3(arr1, arr2, arr3):
     probmat2d = jnp.outer(arr1, arr2)
     result = probmat2d[:, :, None] * arr3
     return jnp.ravel(result)
 
+
 def probvecs_to_R2(arr1, arr2):
     probmat2d = jnp.outer(arr1, arr2)
     return jnp.ravel(probmat2d)
 
+
 def index_pytree(pytree, idx):
     return tree_util.tree_map(lambda x: x[idx], pytree)
+
 
 # there are incompatible combinations of z and r, b/c r is the hyp and
 # can't be smaller than z.
@@ -230,6 +235,7 @@ def obj_to_ego_matter(xyz, radius):
 
 # the angles are correct here, but the arg of the highest ego prob corresponds to depth 1, and it is 5. i think this is because the close gaussians are cut off and renormed, so nearby gaussians will add more weight (i.e. the gaussian cloud will be cut off and renormed). use an unnormed truncated gaussian for addition.
 
+
 @genjax.vmap(in_axes=0)
 @genjax.gen
 def egocentric_matter_map(prob_occupied):
@@ -238,6 +244,7 @@ def egocentric_matter_map(prob_occupied):
         @ "ego_matter"
     )
     return matter
+
 
 @genjax.gen
 def initial_model():
@@ -251,6 +258,7 @@ def initial_model():
     egocentric_probability_map = obj_to_ego_matter(xyzₜ, diam / 2)
     vc_θϕr = egocentric_matter_map(egocentric_probability_map) @ "ego_pos"
     return (vₜ, xyzₜ, vc_θϕr, lights, diam)
+
 
 @genjax.gen
 def step_model(vₚ, xyzₚ, vc_θϕrₚ, lightsₚ, diamₚ):
@@ -309,6 +317,7 @@ def obs_model(vₜ, xyzₜ, vc_θϕr, lights, diam):
 
 """ GETTING OBSERVATIONS """
 
+
 @jit
 def dig_2d_array(white_indices):
     def ind_to_dig(i):
@@ -317,6 +326,7 @@ def dig_2d_array(white_indices):
     return jax.vmap(lambda wi: ind_to_dig(wi))(
         jnp.arange(len(egocentric_2d_map))
     ).astype(int)
+
 
 def generate_pix_to_ego_2d_map(frm_indices_array, frame_shape):
     def map_to_ego_2d(pix):
@@ -331,7 +341,9 @@ def generate_pix_to_ego_2d_map(frm_indices_array, frame_shape):
             jnp.all(egocentric_2d_map == jnp.array([θ, ϕ]), axis=1), size=1
         )[0][0]
         return ego_ind
+
     return jax.vmap(lambda pix: map_to_ego_2d(pix))(frm_indices_array)
+
 
 frame_shape = (600, 600)
 frame_indices = jnp.indices(frame_shape)
@@ -339,7 +351,8 @@ frame_indices_array = jnp.stack(
     [frame_indices[0].ravel(), frame_indices[1].ravel()], axis=-1
 )
 pix_to_ego_2d_map = generate_pix_to_ego_2d_map(
-    frame_indices_array, frame_shape).reshape(frame_shape)
+    frame_indices_array, frame_shape
+).reshape(frame_shape)
 
 
 def find_occupied_2d_angles(frame):
@@ -641,5 +654,3 @@ def test_obs_constraint(observation):
     tr, w = obs_model.importance(ky, obs_trace.get_choices(), tr.get_retval())
     print((tr.get_retval() == observation).all())
     return tr, w
-
-
