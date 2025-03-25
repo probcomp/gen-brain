@@ -177,8 +177,11 @@ def static_plot_snmc(ss_spiketimes_list_input, *resampler):
             else:
                 color_id = c
             ax.vlines(
-                spikes, neuron_y, neuron_y + 0.8, color=cpal[color_id], linewidth=1.0
+                spikes, neuron_y, neuron_y + 0.8, color='k', linewidth=1.0
             )
+            # ax.vlines(
+            #     spikes, neuron_y, neuron_y + 0.8, color=cpal[color_id], linewidth=1.0
+            # )
 
     comp_labels = [v[1] for k, v in ss_spiketimes_list[0].items()]
     #    xlim = np.max(np.concatenate([v[0] for v in ss_spiketimes_list.values()])) + 1
