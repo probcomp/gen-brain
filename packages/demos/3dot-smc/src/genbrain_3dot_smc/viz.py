@@ -159,15 +159,13 @@ def static_plot_snmc(ss_spiketimes_list_input, *resampler):
             return int(label[-2:])
 
     fig, ax = plt.subplots()
-    #    cpal = sns.color_palette("tab20b", 20)
-    cpal = my_tab20(100)
-
+    
     if resampler != ():
         resampler_spikedict = resampler[0]
         indexed_resampler_spikes = {
             i + len(ss_spiketimes_list[0]): v for i, v in resampler_spikedict.items()
         }
-        #        return indexed_resampler_spikesmerged_dict = {**dict1, **dict2}
+        
         ss_spiketimes_list[0] = {**ss_spiketimes_list[0], **indexed_resampler_spikes}
 
     # this is impervious to whether resampler has been added or not.
@@ -177,15 +175,8 @@ def static_plot_snmc(ss_spiketimes_list_input, *resampler):
         for neuron_id, spikes_and_label in spiketimes.items():
             spikes, label = spikes_and_label
             neuron_y = num_components - (neuron_id + 1)
-            if label[0:3] in ["res", "nor"]:
-                color_id = particle_id_decode(label)
-            else:
-                color_id = c
             ax.vlines(spikes, neuron_y, neuron_y + 0.8, color="k", linewidth=1.0)
-            # ax.vlines(
-            #     spikes, neuron_y, neuron_y + 0.8, color=cpal[color_id], linewidth=1.0
-            # )
-
+            
     comp_labels = [v[1] for k, v in ss_spiketimes_list[0].items()]
     #    xlim = np.max(np.concatenate([v[0] for v in ss_spiketimes_list.values()])) + 1
     comp_labels.reverse()
@@ -707,7 +698,6 @@ def animate_current_particle_locs(
     cmap = my_tab20(len(scores[0]))
     ax2D = fig.add_subplot(121)
     ax3D = fig.add_subplot(122, projection="3d")
-    win = 0.3
     ax2D.set_xlabel("θ")
     ax2D.set_ylabel("ϕ")
     ax3D.set_xlabel("X")
@@ -749,62 +739,6 @@ def animate_current_particle_locs(
     return anim
 
 
-def animate_trajectories_only_3D(xyz_inferences, scores, interval=50):
-    fig = plt.figure(figsize=(12, 6))
-    cmap = colormaps["plasma"]
-    ax3D = fig.add_subplot(111, projection="3d")
-    win = 0.3
-    ax3D.set_xlabel("X")
-    ax3D.set_ylabel("Y")
-    ax3D.set_zlabel("Z")
-    ax3D.set_xlim([xs[0], xs[-1]])
-    ax3D.set_ylim([ys[0], ys[-1]])
-    ax3D.set_zlim([zs[0], zs[-1]])
-    ax3D.set_title("Inferred 3D Trajectories")
-    num_steps = len(scores)
-    num_particles = len(scores[0])
-    norm = plt.Normalize(0, num_steps)
-    particle_segments = []
-    num_steps = len(xyz_inferences)
-    num_particles = len(scores[0])
-    cmap_by_step = np.linspace(0, num_steps, num_steps)
-    segments_by_step = []
-    seg_colors_by_step = []
-    for curr_step in range(num_steps):
-        step_segs = []
-        step_colors = []
-        for p_ind in range(num_particles):
-            xyz = xyz_inferences[:, p_ind]
-            segs = [[list(xyz[i]), list(xyz[i + 1])] for i in range(curr_step)]
-            colors = [cmap_by_step[i] for i in range(curr_step)]
-            step_segs = step_segs + segs
-            step_colors = step_colors + colors
-        segments_by_step.append(step_segs)
-        seg_colors_by_step.append(step_colors)
-    segments_by_step = segments_by_step[1:]
-    seg_colors_by_step = seg_colors_by_step[1:]
-
-    def update(frame):
-        ax3D.cla()
-        ax3D.set_xlabel("X")
-        ax3D.set_ylabel("Y")
-        ax3D.set_zlabel("Z")
-        ax3D.set_xlim([xs[0], xs[-1]])
-        ax3D.set_ylim([ys[0], ys[-1]])
-        ax3D.set_zlim([zs[0], zs[-1]])
-        ax3D.set_title("3D Hypotheses (Y = Depth)")
-        lc = Line3DCollection(
-            segments_by_step[frame], cmap=cmap, norm=norm, linewidths=1
-        )
-        lc.set_array(seg_colors_by_step[frame])
-        ax3D.add_collection3d(lc)
-        return (lc,)
-
-    anim = FuncAnimation(
-        fig, update, frames=num_steps - 1, interval=interval, blit=False
-    )
-    return anim
-
 
 def make_probability_heatmap(matrix):
     if len(matrix.shape) == 3:
@@ -818,46 +752,3 @@ def make_probability_heatmap(matrix):
         fig.colorbar(scatter, ax=ax, label="Value")
     plt.show()
 
-
-# x_p_assemblies_particle_0 = snmc_spikes_wrapper(pf_results, 'x', range(num_snmc_steps), range(0,1), ["assemblies_p13", "assemblies_p14", "assemblies_p15"])[0]
-
-# there are 3 neuroscience results i think we can explain from stryker.
-# one, the average selectivity index of neurons in the different layers
-# two, the flow of activity (source / sink) from layer to layer.
-# three, the presence of direction selective neurons (state buffer).
-
-# mountcastle contains a second analysis method – what if you go off
-# by just a bit, do the receptive fields change?
-
-# you'll have a separate diagram for excitatory neurons vs inhibitory neurons.
-# you'll do a drawing of what the circuit looks like with inhibitory neurons
-# added.
-
-# ctx = merge_particle_dicts(snmc_spikes_wrapper
-
-# bg = merge_particle_dicts(snmc_spikes_wrapper(pf_results, 'x', range(num_snmc_steps), range(num_particles), get_components(positions, range(num_particles), ['bg'])))
-
-# x_spikes =  merge_particle_dicts(snmc_spikes_wrapper(pf_results, 'x', range(num_snmc_steps), range(num_particles), get_components(positions, range(num_particles), ['ctx']))[0])
-
-# vx_spikes = merge_particle_dicts(snmc_spikes_wrapper(pf_results, 'vx', range(num_snmc_steps), range(num_particles), get_components(positions, range(num_particles), ['ctx'])))
-
-# to  all spikes at once, just merge the return vals, which are
-# all spiketimes for ss and all spiketimes for rs. also use all particles.
-
-# merged_assemblies = merge_component_dicts(x_p_assemblies_particle_0[0], ["assemblies_p13", "assemblies_p14", "assemblies_p15"])
-
-# wta_components = ['wta_' + str(int(i)) for i in positions]
-
-# this is for the traveling wave.
-# merged_wtas = invert_spiketimes(merge_component_dicts(x_spikes, wta_components))
-
-# lfp_and_spikes(invert_spiketime_labels(merged_assemblies), eeg(x_spikes))
-
-# have to incorporate multiple levels of the bayes net.
-# so even if you're querying on a single variable, have to check
-# the last spike time for ALL variables per step for ALL particles. That's when
-# the resampler starts.
-
-# for any given step, times within a samplescore are all correct and synched.
-# the resampler should start at the very end of all samplescore times.
-# first go through all the samplescores and save their spiketimes by step.

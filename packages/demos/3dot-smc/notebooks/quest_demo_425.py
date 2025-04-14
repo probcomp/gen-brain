@@ -9,7 +9,7 @@ import genstudio.plot as Plot
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 import numpy as np
-%matplotlib tk
+# %matplotlib tk
 
 # First we will collect the generative functions from the 3dot model. 
 genfns = [
