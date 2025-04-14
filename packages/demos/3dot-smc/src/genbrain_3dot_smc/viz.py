@@ -5,6 +5,10 @@ import matplotlib.patches as mpatches
 import seaborn as sns
 import copy
 from astropy.convolution import convolve_fft, Gaussian1DKernel
+from mpl_toolkits.mplot3d.art3d import Line3DCollection
+from matplotlib import patches, colormaps
+import jax
+import jax.numpy as jnp
 np.seterr(divide="ignore")
 
 """ ANALOG PLOT LIB """
@@ -671,6 +675,122 @@ def lfp_and_spikes_animated(spiketimes, lfp, interval=10):
     )
     return ani
 
+def xyz_and_particle_scores(init_pf, fs_pf, unrolled_pf):
+    xyz_init = init_pf[0].get_retval()[1]
+    xyz_step1 = fs_pf[0].get_retval()[1]
+    xyz_rest = unrolled_pf[1][1].get_retval()[1]
+    all_xyz = jnp.vstack([xyz_init[None, :], xyz_step1[None, :], xyz_rest])
+
+    init_scores = jax.tree.reduce(lambda x, y: x + y, init_pf[4])
+    fs_scores = jax.tree.reduce(lambda x, y: x + y, fs_pf[4])
+    unrolled_scores = jax.vmap(lambda scores: jax.tree.reduce(lambda x, y: x + y, scores))(unrolled_pf[1][4])
+    all_scores = [init_scores, fs_scores, *unrolled_scores]
+    return all_xyz, all_scores
+
+def animate_current_particle_locs(observations, points_3D_seq, scores, plot_history, visual_angles, xyz_bounds, interval=50):
+    observation_grids = [np.transpose(np.fliplr(o.reshape(len(visual_angles), len(visual_angles)))) for o in observations]
+    xs, ys, zs = xyz_bounds
+    fig = plt.figure(figsize=(12, 6))
+    cmap = my_tab20(len(scores[0]))
+    ax2D = fig.add_subplot(121)
+    ax3D = fig.add_subplot(122, projection='3d')
+    win = .3
+    ax2D.set_xlabel("θ")
+    ax2D.set_ylabel("ϕ")
+    ax3D.set_xlabel('X')
+    ax3D.set_ylabel('Y')
+    ax3D.set_zlabel('Z')
+    ax3D.set_title("3D Hypotheses (Y = Depth)")
+    ax2D.set_title("2D Observation")
+    ax3D.set_xlim([xs[0], xs[-1]])
+    ax3D.set_ylim([ys[0], ys[-1]])
+    ax3D.set_zlim([zs[0], zs[-1]])
+    num_particles = len(points_3D_seq[0])
+    im = ax2D.imshow(observation_grids[0], cmap='gray', interpolation='none', vmin=0, vmax=1)
+    particles_3D = [ax3D.plot([], [], [], 'o')[0] for _ in range(num_particles)]
+    tails_3D = [ax3D.plot([], [], [], '-', color=cmap[i], alpha=0.3, linewidth=.5)[0] for i in range(num_particles)]
+    def update(frame):
+        im.set_array(observation_grids[frame])
+        for i, (particle, (x, y, z)) in enumerate(zip(particles_3D, points_3D_seq[frame])):
+            particle.set_data([x], [y])
+          #  particle.set_alpha(float(jnp.exp(float(scores[frame][i]))**.1))
+            particle.set_3d_properties([z])
+            particle.set_color(cmap[i])
+            if plot_history:
+                history = np.array(points_3D_seq[:frame+1])[:, i, :]
+                tails_3D[i].set_data(history[:, 0], history[:, 1])
+                tails_3D[i].set_3d_properties(history[:, 2])
+        return [im] + particles_3D + tails_3D
+    
+    anim = FuncAnimation(fig, update, frames=len(observations), interval=interval, blit=True)
+    return anim
+
+
+
+def animate_trajectories_only_3D(xyz_inferences, scores, interval=50):
+    fig = plt.figure(figsize=(12, 6))
+    cmap = colormaps['plasma']
+    ax3D = fig.add_subplot(111, projection='3d')
+    win = .3
+    ax3D.set_xlabel('X')
+    ax3D.set_ylabel('Y')
+    ax3D.set_zlabel('Z')
+    ax3D.set_xlim([xs[0], xs[-1]])
+    ax3D.set_ylim([ys[0], ys[-1]])
+    ax3D.set_zlim([zs[0], zs[-1]])
+    ax3D.set_title("Inferred 3D Trajectories")
+    num_steps = len(scores)
+    num_particles = len(scores[0])  
+    norm = plt.Normalize(0, num_steps)
+    particle_segments = []
+    num_steps = len(xyz_inferences)
+    num_particles = len(scores[0])
+    cmap_by_step = np.linspace(0, num_steps, num_steps)
+    segments_by_step = []
+    seg_colors_by_step = []
+    for curr_step in range(num_steps):
+        step_segs = []
+        step_colors = []
+        for p_ind in range(num_particles):
+            xyz = xyz_inferences[:, p_ind]
+            segs = [[list(xyz[i]), list(xyz[i+1])] for i in range(curr_step)]
+            colors = [cmap_by_step[i] for i in range(curr_step)]
+            step_segs = step_segs + segs
+            step_colors = step_colors + colors
+        segments_by_step.append(step_segs)
+        seg_colors_by_step.append(step_colors)
+    segments_by_step = segments_by_step[1:]
+    seg_colors_by_step = seg_colors_by_step[1:]
+
+    def update(frame):
+        ax3D.cla()  
+        ax3D.set_xlabel('X')
+        ax3D.set_ylabel('Y')
+        ax3D.set_zlabel('Z')
+        ax3D.set_xlim([xs[0], xs[-1]])
+        ax3D.set_ylim([ys[0], ys[-1]])
+        ax3D.set_zlim([zs[0], zs[-1]])
+        ax3D.set_title("3D Hypotheses (Y = Depth)")
+        lc = Line3DCollection(segments_by_step[frame], 
+                              cmap=cmap, norm=norm, linewidths=1)
+        lc.set_array(seg_colors_by_step[frame])  
+        ax3D.add_collection3d(lc)
+        return lc,
+
+    anim = FuncAnimation(fig, update, frames=num_steps-1, interval=interval, blit=False)
+    return anim
+
+def make_probability_heatmap(matrix):
+    if len(matrix.shape) == 3:
+        x, y, z = np.indices(matrix.shape)
+        fig = plt.figure(figsize=(10, 7))
+        ax = fig.add_subplot(111, projection='3d')
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+        scatter = ax.scatter(x, y, z, c=matrix.flatten(), cmap='viridis')
+        fig.colorbar(scatter, ax=ax, label='Value') 
+    plt.show()
 
 # x_p_assemblies_particle_0 = snmc_spikes_wrapper(pf_results, 'x', range(num_snmc_steps), range(0,1), ["assemblies_p13", "assemblies_p14", "assemblies_p15"])[0]
 
