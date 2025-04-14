@@ -361,26 +361,6 @@ def find_occupied_2d_angles(frame):
     return dig_2d_array(occupied_inds)
 
 
-# observations = jax.vmap(lambda obs: find_occupied_2d_angles(obs))(jnp.array(obs_frames))
-
-# np.save("observations.npy", np.array(observations[0:5]))
-# loaded_obs = np.load("observations.npy")
-# observations = jnp.array(loaded_obs)
-
-
-# def show_obs_as_image(obs):
-#     im = obs.reshape(len(visual_angles), len(visual_angles))
-#     fig, ax = plt.subplots()
-#     ax.imshow(im, cmap="viridis")
-#     ax.set_xticks(jnp.arange(len(visual_angles)))
-#     ax.set_yticks(jnp.arange(len(visual_angles)))
-#     ax.set_xticklabels(visual_angles, fontsize=4, rotation=90)
-#     ax.set_yticklabels((-1 * visual_angles), fontsize=4)
-#     ax.set_xlabel("Θ")
-#     ax.set_ylabel("ϕ")
-#     plt.imshow(im)
-
-
 def generate_obs_traces(observations):
     key = jax.random.PRNGKey(1000)
     random_args = initial_model.simulate(key, ()).get_retval()

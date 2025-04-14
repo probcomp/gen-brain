@@ -1,35 +1,13 @@
 import genbrain_model_3dot as model
+from genbrain_3dot_smc import collect_frames
 from genbrain_smcnn_core.interpreter import (
     get_categorical_probs,
     run_smcnn_particle_filter,
 )
 import genbrain_smcnn_core.interpreter.master as smcnn
-import numpy as np
 import jax.numpy as jnp
 import jax
 from genjax import ChoiceMapBuilder as CMB
-from PIL import Image
-import re
-import os
-
-
-def collect_frames(directory="../data/", file_pattern="frame-*.png"):
-    frame_regex = re.compile(r"frame-(\d+)\.png")
-    frames = []
-    for filename in os.listdir(directory):
-        match = frame_regex.match(filename)
-        if match:
-            frame_number = int(match.group(1))
-            frames.append((frame_number, os.path.join(directory, filename)))
-    frames.sort(key=lambda x: x[0])
-    frame_paths = [path for _, path in frames]
-    numpy_frames = []
-    for path in frame_paths:
-        with Image.open(path) as img:
-            # this must be going downwards?
-            im = img.convert("L").point(lambda p: 1 if p > 0 else 0)
-            numpy_frames.append((np.transpose(np.flipud(np.array(im))) > 0).astype(int))
-    return numpy_frames
 
 
 key = jax.random.PRNGKey(100)
@@ -106,7 +84,6 @@ obs_tr_constrained, w = obs_mod_imp(key, obs_constraint, tr_prop.get_retval())
 assert (
     obs_tr_constrained.get_choices()["obs", "pix"] == obs_constraint[("obs", "pix")]
 ).all()
-
 
 # Test classes from master interpreter
 
@@ -223,11 +200,3 @@ results = run_smcnn_particle_filter(
     2,
     vis_angle_observations[1:3],
 )
-
-
-def get_xyz(results):
-    particles_per_step = results[1]
-    xyz_vals = []
-    for particles in particles_per_step:
-        xyz_vals.append([model.xyz_point_cloud[p.choicemap["xyz"]] for p in particles])
-    return xyz_vals

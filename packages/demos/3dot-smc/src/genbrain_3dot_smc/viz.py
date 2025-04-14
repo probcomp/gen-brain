@@ -5,6 +5,11 @@ import matplotlib.patches as mpatches
 import seaborn as sns
 import copy
 from astropy.convolution import convolve_fft, Gaussian1DKernel
+from mpl_toolkits.mplot3d.art3d import Line3DCollection
+from matplotlib import colormaps
+import jax
+import jax.numpy as jnp
+
 np.seterr(divide="ignore")
 
 """ ANALOG PLOT LIB """
@@ -154,15 +159,13 @@ def static_plot_snmc(ss_spiketimes_list_input, *resampler):
             return int(label[-2:])
 
     fig, ax = plt.subplots()
-    #    cpal = sns.color_palette("tab20b", 20)
-    cpal = my_tab20(100)
-
+    
     if resampler != ():
         resampler_spikedict = resampler[0]
         indexed_resampler_spikes = {
             i + len(ss_spiketimes_list[0]): v for i, v in resampler_spikedict.items()
         }
-        #        return indexed_resampler_spikesmerged_dict = {**dict1, **dict2}
+        
         ss_spiketimes_list[0] = {**ss_spiketimes_list[0], **indexed_resampler_spikes}
 
     # this is impervious to whether resampler has been added or not.
@@ -172,14 +175,8 @@ def static_plot_snmc(ss_spiketimes_list_input, *resampler):
         for neuron_id, spikes_and_label in spiketimes.items():
             spikes, label = spikes_and_label
             neuron_y = num_components - (neuron_id + 1)
-            if label[0:3] in ["res", "nor"]:
-                color_id = particle_id_decode(label)
-            else:
-                color_id = c
-            ax.vlines(
-                spikes, neuron_y, neuron_y + 0.8, color=cpal[color_id], linewidth=1.0
-            )
-
+            ax.vlines(spikes, neuron_y, neuron_y + 0.8, color="k", linewidth=1.0)
+            
     comp_labels = [v[1] for k, v in ss_spiketimes_list[0].items()]
     #    xlim = np.max(np.concatenate([v[0] for v in ss_spiketimes_list.values()])) + 1
     comp_labels.reverse()
@@ -328,13 +325,12 @@ def merge_component_dicts(spiketimes, component_order):
 
 # this will combine all spikes across particles
 def merge_particle_dicts(spikes_by_particle):
-
     def add_scalar_to_keys(scalar, d):
         new_d = {}
         for k, v in d.items():
             new_d[k + scalar] = v
         return new_d
-    
+
     final_spiketimes = {}
     max_key = 0
     for st in spikes_by_particle:
@@ -669,45 +665,90 @@ def lfp_and_spikes_animated(spiketimes, lfp, interval=10):
     return ani
 
 
-# x_p_assemblies_particle_0 = snmc_spikes_wrapper(pf_results, 'x', range(num_snmc_steps), range(0,1), ["assemblies_p13", "assemblies_p14", "assemblies_p15"])[0]
+def xyz_and_particle_scores(init_pf, fs_pf, unrolled_pf):
+    xyz_init = init_pf[0].get_retval()[1]
+    xyz_step1 = fs_pf[0].get_retval()[1]
+    xyz_rest = unrolled_pf[1][1].get_retval()[1]
+    all_xyz = jnp.vstack([xyz_init[None, :], xyz_step1[None, :], xyz_rest])
 
-# there are 3 neuroscience results i think we can explain from stryker.
-# one, the average selectivity index of neurons in the different layers
-# two, the flow of activity (source / sink) from layer to layer.
-# three, the presence of direction selective neurons (state buffer).
+    init_scores = jax.tree.reduce(lambda x, y: x + y, init_pf[4])
+    fs_scores = jax.tree.reduce(lambda x, y: x + y, fs_pf[4])
+    unrolled_scores = jax.vmap(
+        lambda scores: jax.tree.reduce(lambda x, y: x + y, scores)
+    )(unrolled_pf[1][4])
+    all_scores = [init_scores, fs_scores, *unrolled_scores]
+    return all_xyz, all_scores
 
-# mountcastle contains a second analysis method – what if you go off
-# by just a bit, do the receptive fields change?
 
-# you'll have a separate diagram for excitatory neurons vs inhibitory neurons.
-# you'll do a drawing of what the circuit looks like with inhibitory neurons
-# added.
+def animate_current_particle_locs(
+    observations,
+    points_3D_seq,
+    scores,
+    plot_history,
+    visual_angles,
+    xyz_bounds,
+    interval=50,
+):
+    observation_grids = [
+        np.transpose(np.fliplr(o.reshape(len(visual_angles), len(visual_angles))))
+        for o in observations
+    ]
+    xs, ys, zs = xyz_bounds
+    fig = plt.figure(figsize=(12, 6))
+    cmap = my_tab20(len(scores[0]))
+    ax2D = fig.add_subplot(121)
+    ax3D = fig.add_subplot(122, projection="3d")
+    ax2D.set_xlabel("θ")
+    ax2D.set_ylabel("ϕ")
+    ax3D.set_xlabel("X")
+    ax3D.set_ylabel("Y")
+    ax3D.set_zlabel("Z")
+    ax3D.set_title("3D Hypotheses (Y = Depth)")
+    ax2D.set_title("2D Observation")
+    ax3D.set_xlim([xs[0], xs[-1]])
+    ax3D.set_ylim([ys[0], ys[-1]])
+    ax3D.set_zlim([zs[0], zs[-1]])
+    num_particles = len(points_3D_seq[0])
+    im = ax2D.imshow(
+        observation_grids[0], cmap="gray", interpolation="none", vmin=0, vmax=1
+    )
+    particles_3D = [ax3D.plot([], [], [], "o")[0] for _ in range(num_particles)]
+    tails_3D = [
+        ax3D.plot([], [], [], "-", color=cmap[i], alpha=0.3, linewidth=0.5)[0]
+        for i in range(num_particles)
+    ]
 
-# ctx = merge_particle_dicts(snmc_spikes_wrapper
+    def update(frame):
+        im.set_array(observation_grids[frame])
+        for i, (particle, (x, y, z)) in enumerate(
+            zip(particles_3D, points_3D_seq[frame])
+        ):
+            particle.set_data([x], [y])
+            #  particle.set_alpha(float(jnp.exp(float(scores[frame][i]))**.1))
+            particle.set_3d_properties([z])
+            particle.set_color(cmap[i])
+            if plot_history:
+                history = np.array(points_3D_seq[: frame + 1])[:, i, :]
+                tails_3D[i].set_data(history[:, 0], history[:, 1])
+                tails_3D[i].set_3d_properties(history[:, 2])
+        return [im] + particles_3D + tails_3D
 
-# bg = merge_particle_dicts(snmc_spikes_wrapper(pf_results, 'x', range(num_snmc_steps), range(num_particles), get_components(positions, range(num_particles), ['bg'])))
+    anim = FuncAnimation(
+        fig, update, frames=len(observations), interval=interval, blit=True
+    )
+    return anim
 
-# x_spikes =  merge_particle_dicts(snmc_spikes_wrapper(pf_results, 'x', range(num_snmc_steps), range(num_particles), get_components(positions, range(num_particles), ['ctx']))[0])
 
-# vx_spikes = merge_particle_dicts(snmc_spikes_wrapper(pf_results, 'vx', range(num_snmc_steps), range(num_particles), get_components(positions, range(num_particles), ['ctx'])))
 
-# to  all spikes at once, just merge the return vals, which are
-# all spiketimes for ss and all spiketimes for rs. also use all particles.
+def make_probability_heatmap(matrix):
+    if len(matrix.shape) == 3:
+        x, y, z = np.indices(matrix.shape)
+        fig = plt.figure(figsize=(10, 7))
+        ax = fig.add_subplot(111, projection="3d")
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+        ax.set_zlabel("Z")
+        scatter = ax.scatter(x, y, z, c=matrix.flatten(), cmap="viridis")
+        fig.colorbar(scatter, ax=ax, label="Value")
+    plt.show()
 
-# merged_assemblies = merge_component_dicts(x_p_assemblies_particle_0[0], ["assemblies_p13", "assemblies_p14", "assemblies_p15"])
-
-# wta_components = ['wta_' + str(int(i)) for i in positions]
-
-# this is for the traveling wave.
-# merged_wtas = invert_spiketimes(merge_component_dicts(x_spikes, wta_components))
-
-# lfp_and_spikes(invert_spiketime_labels(merged_assemblies), eeg(x_spikes))
-
-# have to incorporate multiple levels of the bayes net.
-# so even if you're querying on a single variable, have to check
-# the last spike time for ALL variables per step for ALL particles. That's when
-# the resampler starts.
-
-# for any given step, times within a samplescore are all correct and synched.
-# the resampler should start at the very end of all samplescore times.
-# first go through all the samplescores and save their spiketimes by step.
