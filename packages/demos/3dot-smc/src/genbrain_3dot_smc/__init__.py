@@ -1,8 +1,9 @@
 import numpy as np
-import os 
+import os
 import re
 from PIL import Image
 import genbrain_model_3dot as model
+
 
 def collect_frames(directory="../data/", file_pattern="frame-*.png"):
     frame_regex = re.compile(r"frame-(\d+)\.png")
@@ -22,10 +23,10 @@ def collect_frames(directory="../data/", file_pattern="frame-*.png"):
             numpy_frames.append((np.transpose(np.flipud(np.array(im))) > 0).astype(int))
     return numpy_frames
 
+
 def get_xyz(results):
     particles_per_step = results[1]
     xyz_vals = []
     for particles in particles_per_step:
         xyz_vals.append([model.xyz_point_cloud[p.choicemap["xyz"]] for p in particles])
     return xyz_vals
-

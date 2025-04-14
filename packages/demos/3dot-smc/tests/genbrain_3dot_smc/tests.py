@@ -5,7 +5,6 @@ from genbrain_smcnn_core.interpreter import (
     run_smcnn_particle_filter,
 )
 import genbrain_smcnn_core.interpreter.master as smcnn
-import numpy as np
 import jax.numpy as jnp
 import jax
 from genjax import ChoiceMapBuilder as CMB
@@ -201,5 +200,3 @@ results = run_smcnn_particle_filter(
     2,
     vis_angle_observations[1:3],
 )
-
-
