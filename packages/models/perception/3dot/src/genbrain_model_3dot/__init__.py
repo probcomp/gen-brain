@@ -361,7 +361,6 @@ def find_occupied_2d_angles(frame):
     return dig_2d_array(occupied_inds)
 
 
-
 def generate_obs_traces(observations):
     key = jax.random.PRNGKey(1000)
     random_args = initial_model.simulate(key, ()).get_retval()
